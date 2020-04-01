@@ -42,7 +42,7 @@ router.post('/', (req, res) => {
   let name = req.body.name;
   console.log(name);
   var studentPath = path.join(__dirname, '../data/students.json');
-  let students = JSON.parse(fs.readFileSync(studentPath));
+  let students = JSON.parse(fs.readFileSync(studentPath.toString()));
   let studentData = {};
   let studentFound = false;
   students.map(student => {
