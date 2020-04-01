@@ -39,6 +39,7 @@ const isEmpty = obj => {
 };
 
 router.post('/', (req, res) => {
+  console.log('request recieved');
   let name = req.body.name;
   console.log(name);
   var studentPath = path.join(__dirname, '../data/students.json');
