@@ -12,28 +12,14 @@ router.get('/', (req, res) => {
     } else {
       var resultPath = path.join(__dirname, '../data/results.json');
       var studentPath = path.join(__dirname, '../data/students.json');
-      var testsPath = path.join(__dirname, '../data/tests');
-      var groupsPath = path.join(__dirname, '../data/groups');
+      var testsPath = path.join(__dirname, '../data/tests.json');
+      var groupsPath = path.join(__dirname, '../data/groups.json');
       let results = JSON.parse(fs.readFileSync(resultPath));
       let tests = [];
       let groups = [];
       let students = JSON.parse(fs.readFileSync(studentPath));
-      fs.readdirSync(testsPath).forEach(file => {
-        tests = [
-          ...tests,
-          JSON.parse(
-            fs.readFileSync(path.join(__dirname, '../data/tests', file))
-          )
-        ];
-      });
-      fs.readdirSync(groupsPath).forEach(file => {
-        groups = [
-          ...groups,
-          JSON.parse(
-            fs.readFileSync(path.join(__dirname, '../data/groups', file))
-          )
-        ];
-      });
+      tests = JSON.parse(fs.readFileSync(testsPath));
+      groups = JSON.parse(fs.readFileSync(groupsPath));
       res.json({ auth, results, tests, groups, students });
     }
   });
