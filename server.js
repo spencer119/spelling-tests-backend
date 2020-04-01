@@ -11,6 +11,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Headers', '*');
     return res.status(200).json({});
   }
+  next();
 });
 app.use(express.static('./data/'));
 app.use(express.json());
