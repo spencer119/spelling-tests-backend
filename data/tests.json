@@ -1,0 +1,54 @@
+[
+  {
+    "id": "Module 8 Week 2 Regular",
+    "group": "Group 1",
+    "words": [
+      "cow",
+      "house",
+      "town",
+      "shout",
+      "mouse",
+      "found",
+      "loud",
+      "down",
+      "ground",
+      "pound",
+      "flower",
+      "brown",
+      "towel",
+      "pounce"
+    ]
+  },
+  {
+    "id": "Module 8 Week 2 Digraphs",
+    "group": "Group 2",
+    "words": [
+      "chat",
+      "chip",
+      "chop",
+      "chick",
+      "check",
+      "chug",
+      "chin",
+      "much",
+      "such",
+      "rich"
+    ]
+  },
+  {
+    "id": "Module 8 Week 2 Blends",
+    "group": "Group 3",
+    "words": [
+      "trick",
+      "trap",
+      "dress",
+      "drink",
+      "grass",
+      "grunt",
+      "crab",
+      "bring",
+      "frog",
+      "prank"
+    ]
+  }
+]
