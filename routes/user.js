@@ -60,6 +60,7 @@ router.post('/', (req, res) => {
       }
     });
   } else {
+    console.log(studentFound);
     res.status(404).json({ msg: 'Invalid name.' });
   }
 });
