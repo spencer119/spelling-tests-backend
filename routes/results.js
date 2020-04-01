@@ -5,7 +5,7 @@ const path = require('path');
 
 router.post('/', (req, res) => {
   try {
-    var resultPath = path.join(__dirname, '../results.json');
+    var resultPath = path.join(__dirname, '../data/results.json');
     let rawdata = fs.readFileSync(resultPath);
     let parsed = JSON.parse(rawdata);
     parsed = [...parsed, req.body];
