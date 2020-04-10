@@ -17,6 +17,7 @@ router.post('/', async (req, res) => {
         jwt.sign(
           { admin: false, student },
           process.env.JWT_SECRET,
+          {},
           (err, token) => {
             if (err) {
               res.status(500).json({ err });

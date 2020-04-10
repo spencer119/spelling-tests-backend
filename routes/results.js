@@ -3,6 +3,7 @@ const router = express.Router();
 const Student = require('../models/Student');
 const Test = require('../models/Test');
 router.post('/', (req, res) => {
+  console.log(req.body);
   Student.findOne({ name: req.body.name })
     .then((result) => {
       result.scores = [
