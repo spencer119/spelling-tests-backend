@@ -17,7 +17,6 @@ router.post('/', (req, res) => {
       ];
       result.save().then(() => {
         Test.findOne({ name: req.body.testName }).then((result) => {
-          console.log(result);
           result.scores = [
             ...result.scores,
             {
@@ -31,16 +30,18 @@ router.post('/', (req, res) => {
           ];
           result
             .save()
-            .then(() => res.status(200))
-            .catch(() =>
+            .then(() => res.status(200).json({ msg: 'Success' }))
+            .catch((err) => {
+              console.log(err);
               res.status(500).json({
                 msg: 'There was an error saving the score to the database.',
-              })
-            );
+              });
+            });
         });
       });
     })
-    .catch(() => {
+    .catch((err) => {
+      console.log(err);
       res.status(500).json({
         msg: 'There was an error saving the score to the database.',
       });

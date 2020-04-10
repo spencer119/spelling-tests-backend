@@ -17,6 +17,7 @@ app.use((req, res, next) => {
 
 app.use(express.static('./data/'));
 app.use(express.json());
+
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));

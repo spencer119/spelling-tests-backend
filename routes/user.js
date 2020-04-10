@@ -7,7 +7,7 @@ const Test = require('../models/Test');
 require('dotenv/config');
 
 router.post('/', async (req, res) => {
-  console.log('request recieved');
+  console.log(`${req.body.name} has started the test`);
   let name = req.body.name;
   Student.findOne({ name })
     .then((student) => {
