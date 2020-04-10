@@ -14,7 +14,6 @@ router.post('/', async (req, res) => {
       if (student === null) {
         res.status(404).json({ msg: 'Invalid name.' });
       } else {
-        console.log(student);
         jwt.sign(
           { admin: false, student },
           process.env.JWT_SECRET,
@@ -22,7 +21,6 @@ router.post('/', async (req, res) => {
             if (err) {
               res.status(500).json({ err });
             } else {
-              console.log(token);
               res.status(202).json({ token });
             }
           }

@@ -9,6 +9,9 @@ const TestSchema = mongoose.Schema({
     type: Array,
     required: true,
   },
+  scores: {
+    type: Array,
+  },
 });
 
 module.exports = mongoose.model('Test', TestSchema);
