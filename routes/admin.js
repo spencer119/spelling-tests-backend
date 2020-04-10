@@ -3,7 +3,9 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-
+const Student = require('../models/Student');
+const Group = require('../models/Group');
+const Test = require('../models/Test');
 router.get('/', (req, res) => {
   let userToken = req.headers.token;
   jwt.verify(userToken, 'secret', (err, auth) => {

@@ -1,5 +1,6 @@
 const express = require('express');
-
+const mongoose = require('mongoose');
+require('dotenv/config');
 const app = express();
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -20,6 +21,15 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/user', require('./routes/user'));
+
+// Connect to database
+mongoose.connect(
+  process.env.DB_CONNECTION,
+  { useNewUrlParser: true, useUnifiedTopology: true },
+  () => {
+    console.log('Connected to Database');
+  }
+);
 
 const PORT = process.env.PORT || 5000;
 
