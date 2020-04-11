@@ -9,9 +9,6 @@ const StudentSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  scores: {
-    type: Array,
-  },
 });
 
 module.exports = mongoose.model('Student', StudentSchema);
