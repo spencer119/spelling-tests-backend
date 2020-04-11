@@ -9,7 +9,7 @@ require('dotenv/config');
 router.post('/', async (req, res) => {
   console.log(`${req.body.name} has started the test`);
   let name = req.body.name;
-  Student.findOne({ name })
+  Student.findOne({ name: name.toLowerCase() })
     .then((student) => {
       if (student === null) {
         res.status(404).json({ msg: 'Invalid name.' });

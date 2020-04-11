@@ -4,7 +4,7 @@ const Student = require('../models/Student');
 const Test = require('../models/Test');
 router.post('/', (req, res) => {
   console.log(req.body);
-  Student.findOne({ name: req.body.name })
+  Student.findOne({ name: req.body.name.toLowerCase() })
     .then((result) => {
       result.scores = [
         ...result.scores,
