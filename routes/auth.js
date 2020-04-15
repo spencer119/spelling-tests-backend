@@ -11,7 +11,7 @@ router.post('/', (req, res) => {
       '$2a$10$11pvtOIyjeFaK3B64QsFgehapCLR2s/VeUlyDRScOOQ89oGaeENi6'
     )
   ) {
-    jwt.sign({ admin: true }, 'secret', (err, token) => {
+    jwt.sign({ admin: true }, process.env.JWT_SECRET, (err, token) => {
       if (err) {
         res.status(500).json({ err });
       } else {
