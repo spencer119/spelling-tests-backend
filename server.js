@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 require('dotenv/config');
 const app = express();
 app.use((req, res, next) => {
@@ -14,7 +15,7 @@ app.use((req, res, next) => {
   }
   next();
 });
-
+app.use(cors());
 app.use(express.static('./data/'));
 app.use(express.json());
 
