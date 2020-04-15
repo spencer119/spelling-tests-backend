@@ -3,18 +3,18 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv/config');
 const app = express();
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Headers', '*');
-    return res.status(200).json({});
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header(
+//     'Access-Control-Allow-Headers',
+//     'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+//   );
+//   if (req.method === 'OPTIONS') {
+//     res.header('Access-Control-Allow-Headers', '*');
+//     return res.status(200).json({});
+//   }
+//   next();
+// });
 app.use(cors());
 app.use(express.static('./data/'));
 app.use(express.json());
