@@ -2,23 +2,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv/config');
+const fileUpload = require('express-fileupload');
 const app = express();
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-//   );
-//   if (req.method === 'OPTIONS') {
-//     res.header('Access-Control-Allow-Headers', '*');
-//     return res.status(200).json({});
-//   }
-//   next();
-// });
+
 app.use(cors());
 app.use(express.static('./data/'));
 app.use(express.json());
-
+app.use(fileUpload());
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
