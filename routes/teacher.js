@@ -5,6 +5,8 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const Group = require('../models/Group');
 const Test = require('../models/Test');
+const multer = require('multer');
+let audioPath = path.join(__dirname, '../data/audio');
 router.get('/groups', (req, res) => {
   let userToken = req.headers.token;
   jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
@@ -13,7 +15,6 @@ router.get('/groups', (req, res) => {
     } else {
       if (auth.admin) {
         Group.find({}).then((groups) => {
-          console.log(groups);
           res.json(groups);
         });
       } else {
@@ -49,8 +50,16 @@ router.get('/tests', (req, res) => {
       res.status(403).json({ err });
     } else {
       if (auth.admin) {
+        let missing = [];
         Test.find({}).then((tests) => {
-          res.json(tests);
+          tests.map((test) => {
+            test.words.map((word) => {
+              if (!fs.existsSync(path.join(audioPath, `/${word}.m4a`))) {
+                missing.push(word);
+              }
+            });
+          });
+          res.json({ tests, missing });
         });
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
@@ -90,6 +99,30 @@ router.delete('/tests', (req, res) => {
           .catch(() =>
             res.json(500).json({ msg: 'There was an error deleting the test' })
           );
+      } else {
+        res.status(401).json({ msg: 'Unauthorized' });
+      }
+    }
+  });
+});
+router.post('/upload', (req, res) => {
+  let userToken = req.headers.token;
+  jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      res.status(403).json({ err });
+    } else {
+      if (auth.admin) {
+        if (!req.files || Object.keys(req.files).length === 0) {
+          return res.status(400).send('No files were uploaded.');
+        }
+        if (req.files.file[0] === undefined) {
+          req.files.file.mv(path.join(audioPath, `/${req.files.file.name}`));
+        } else {
+          req.files.file.map((file) => {
+            file.mv(path.join(audioPath, `/${file.name}`));
+          });
+        }
+        res.json({ msg: 'files uploaded' });
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
