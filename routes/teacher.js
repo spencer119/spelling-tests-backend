@@ -5,7 +5,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const Group = require('../models/Group');
 const Test = require('../models/Test');
-const multer = require('multer');
+const Result = require('../models/Result');
 let audioPath = path.join(__dirname, '../data/audio');
 router.get('/groups', (req, res) => {
   let userToken = req.headers.token;
@@ -85,7 +85,6 @@ router.post('/tests', (req, res) => {
   });
 });
 router.delete('/tests', (req, res) => {
-  console.log(req);
   let userToken = req.headers.token;
   jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
@@ -123,6 +122,26 @@ router.post('/upload', (req, res) => {
           });
         }
         res.json({ msg: 'files uploaded' });
+      } else {
+        res.status(401).json({ msg: 'Unauthorized' });
+      }
+    }
+  });
+});
+router.get('/results', (req, res) => {
+  let userToken = req.headers.token;
+  jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      res.status(403).json({ err });
+    } else {
+      if (auth.admin) {
+        Result.find({})
+          .then((results) => {
+            res.json({ results });
+          })
+          .catch((err) => {
+            res.status(500).json({ err });
+          });
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }

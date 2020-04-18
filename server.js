@@ -9,6 +9,8 @@ app.use(cors());
 app.use(express.static('./data/'));
 app.use(express.json());
 app.use(fileUpload());
+
+// Routes
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
