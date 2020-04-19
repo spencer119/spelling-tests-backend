@@ -3,16 +3,6 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
-router.post('/create', (req, res) => {
-  let username = 'spencer';
-  let password = bcrypt.hashSync('Recneps');
-  let admin = new Admin({
-    username,
-    password,
-    permissions: { canViewNames: false },
-  });
-  admin.save().then((result) => res.json({ result }));
-});
 
 router.post('/', (req, res) => {
   let username = req.body.username;
