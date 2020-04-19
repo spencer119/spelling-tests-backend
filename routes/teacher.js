@@ -137,7 +137,22 @@ router.get('/results', (req, res) => {
       if (auth.admin) {
         Result.find({})
           .then((results) => {
-            res.json({ results });
+            if (!auth.canViewNames) {
+              let counter = 1;
+              let studentMatches = {};
+              results.map((result) => {
+                if (studentMatches.hasOwnProperty(result.name)) {
+                  result.name = studentMatches[`${result.name}`];
+                } else {
+                  studentMatches[result.name] = `Student ${counter}`;
+                  result.name = `Student ${counter}`;
+                }
+                return counter++;
+              });
+              res.json({ results });
+            } else {
+              res.json({ results });
+            }
           })
           .catch((err) => {
             res.status(500).json({ err });
