@@ -54,7 +54,11 @@ router.get('/tests', (req, res) => {
         Test.find({}).then((tests) => {
           tests.map((test) => {
             test.words.map((word) => {
-              if (!fs.existsSync(path.join(audioPath, `/${word}.m4a`))) {
+              if (
+                !fs.existsSync(
+                  path.join(audioPath, `/${word.replace("'", '')}.m4a`)
+                )
+              ) {
                 missing.push(word);
               }
             });
