@@ -115,10 +115,12 @@ router.post('/upload', (req, res) => {
           return res.status(400).send('No files were uploaded.');
         }
         if (req.files.file[0] === undefined) {
-          req.files.file.mv(path.join(audioPath, `/${req.files.file.name}`));
+          req.files.file.mv(
+            path.join(audioPath, `/${req.files.file.name.replace("'", '')}`)
+          );
         } else {
           req.files.file.map((file) => {
-            file.mv(path.join(audioPath, `/${file.name}`));
+            file.mv(path.join(audioPath, `/${file.name.replace("'", '')}`));
           });
         }
         res.json({ msg: 'files uploaded' });
