@@ -9,8 +9,18 @@ app.use(cors());
 app.use(express.static('./data/'));
 app.use(express.json());
 app.use(fileUpload());
+const maintenance = true;
 
 // Routes
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/user') || req.url.startsWith('/api/results')) {
+    if (maintenance) {
+      return res.status(401).json({ maintenance: true });
+    } else {
+      next();
+    }
+  } else next();
+});
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
