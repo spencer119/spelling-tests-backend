@@ -5,17 +5,17 @@ const Student = require('../models/Student');
 const Group = require('../models/Group');
 const Test = require('../models/Test');
 require('dotenv/config');
-
+const db = require('../db');
 router.post('/', async (req, res) => {
-  console.log(`${req.body.name} has started the test`);
-  let name = req.body.name;
-  Student.findOne({ name: name.toLowerCase() })
-    .then((student) => {
-      if (student === null) {
+  db.query(
+    `SELECT * FROM students WHERE username='${req.body.username}'`,
+    (err, data) => {
+      if (err || data.rows.length === 0) {
         res.status(404).json({ msg: 'Invalid name.' });
       } else {
+        console.log(data.rows);
         jwt.sign(
-          { admin: false, student },
+          { teacher: false, student: data.rows[0] },
           process.env.JWT_SECRET,
           {},
           (err, token) => {
@@ -27,8 +27,8 @@ router.post('/', async (req, res) => {
           }
         );
       }
-    })
-    .catch((err) => console.log(err));
+    }
+  );
 });
 router.get('/test', (req, res) => {
   let token = req.headers.token;
@@ -36,6 +36,7 @@ router.get('/test', (req, res) => {
     if (err) {
       return res.status(401).json({ msg: 'Invalid token.' });
     } else {
+      console.log(auth);
       Group.findOne({ name: auth.student.group }).then((group) => {
         if (group.activeTest === '') {
           res

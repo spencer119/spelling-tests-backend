@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { Client } = require('pg');
 const cors = require('cors');
 require('dotenv/config');
 const fileUpload = require('express-fileupload');
@@ -34,6 +35,7 @@ mongoose.connect(
     console.log('Connected to Database');
   }
 );
+
 
 const PORT = process.env.PORT || 5000;
 
