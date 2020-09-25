@@ -35,6 +35,25 @@ router.get('/students', (req, res) => {
     }
   });
 });
+router.get('/student', (req, res) => {
+  let token = req.headers.token;
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      return res.status(403);
+    }
+    console.log(auth)
+    if (auth.teacher_id) {
+      let studentData = await db.query(
+        `SELECT * FROM students WHERE student_id='${req.headers.student_id}'`);
+        let student = studentData.rows
+      res.status(200).json({
+        student
+      });
+    } else {
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
+  });
+});
 router.post('/students', (req, res) => {
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
