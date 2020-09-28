@@ -152,22 +152,8 @@ router.get('/tests', (req, res) => {
     if (err) {
       res.status(403).json({ err });
     } else {
-      if (auth.admin) {
-        let missing = [];
-        Test.find({}).then((tests) => {
-          tests.map((test) => {
-            test.words.map((word) => {
-              if (
-                !fs.existsSync(
-                  path.join(audioPath, `/${word.replace("'", '')}.m4a`)
-                )
-              ) {
-                missing.push(word);
-              }
-            });
-          });
-          res.json({ tests, missing });
-        });
+      if (auth.teacher_id) {
+        res.status(200)
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
@@ -175,16 +161,35 @@ router.get('/tests', (req, res) => {
   });
 });
 router.post('/tests', (req, res) => {
-  let userToken = req.body.token;
+  let userToken = req.headers.token;
   jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
       res.status(403).json({ err });
     } else {
-      if (auth.admin) {
-        let test = new Test({ name: req.body.name, words: req.body.words });
-        test.save().then(() => {
-          res.status(200).json({ msg: 'Test created' });
-        });
+      if (auth.teacher_id) {
+        let words = req.body.words;
+        let testName = req.body.name;
+        db.query(`INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`, (err, data) => {
+          if (err) {
+            return res.status(500);
+          } else {
+            console.log(data.rows[0].test_id);
+            let queryString = `INSERT INTO testlines (test_id, line_number, word) VALUES `;
+            for (i=0; i < words.length; i++)
+            {
+              queryString = queryString.concat(`('${data.rows[0].test_id}', ${i + 1}, '${words[i]}'),`)
+            }
+              queryString = queryString.slice(0, -1)
+            db.query(queryString, (err,sdata) => {
+              if (err) {
+                res.status(500);
+                db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`)
+              } else {
+                res.status(201)
+              }
+            })
+          }
+        })
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
