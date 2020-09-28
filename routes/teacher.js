@@ -8,7 +8,8 @@ const Test = require('../models/Test');
 const Result = require('../models/Result');
 const db = require('../db');
 let audioPath = path.join(__dirname, '../data/audio');
-router.get('/students', (req, res) => {
+router.get('/', (req, res) => {
+  // gets everything corresponding to the teacher, students, classes, groups
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
@@ -41,20 +42,20 @@ router.get('/student', (req, res) => {
     if (err) {
       return res.status(403);
     }
-    console.log(auth)
     if (auth.teacher_id) {
       let studentData = await db.query(
-        `SELECT * FROM students WHERE student_id='${req.headers.student_id}'`);
-        let student = studentData.rows
+        `SELECT * FROM students WHERE student_id='${req.headers.student_id}'`
+      );
+      let student = studentData.rows;
       res.status(200).json({
-        student
+        student,
       });
     } else {
       return res.status(403).json({ msg: 'Unauthorized' });
     }
   });
 });
-router.post('/students', (req, res) => {
+router.post('/student', (req, res) => {
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
@@ -77,25 +78,68 @@ router.post('/students', (req, res) => {
           }
         }
       );
-      console.log(req.body);
     } else {
       return res.status(403).json({ msg: 'Unauthorized' });
     }
   });
 });
-router.put('/groups', (req, res) => {
-  let userToken = req.body.token;
-  jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
+router.get('/groups', (req, res) => {
+  let token = req.headers.token;
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
       res.status(403).json({ err });
     } else {
-      if (auth.admin) {
-        Group.findOne({ name: req.body.group }).then((group) => {
-          group.activeTest = req.body.newTest;
-          group.save().then(() => {
-            res.status(200).json({ msg: 'Test updated' });
-          });
-        });
+      if (auth.teacher_id) {
+        db.query(
+          `SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`,
+          (err, data) => {
+            if (err) {
+              res.status(500);
+            } else {
+              res.status(200).json(data.rows);
+            }
+          }
+        );
+      } else {
+        res.status(401).json({ msg: 'Unauthorized' });
+      }
+    }
+  });
+});
+router.post('/group', (req, res) => {
+  let token = req.headers.token;
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      return res.status(403);
+    }
+    if (auth.teacher_id) {
+      db.query(
+        `INSERT INTO groups (group_name, teacher_id, class_id) VALUES ('${req.body.group_name}', '${auth.teacher_id}', '${req.body.class_id}')`,
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ err });
+          } else {
+            res.status(201).json(data);
+          }
+        }
+      );
+    } else {
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
+  });
+});
+router.get('/classes', (req, res) => {
+  let token = req.headers.token;
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      res.status(403).json({ err });
+    } else {
+      if (auth.teacher_id) {
+        let classData = await db.query(
+          `SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`
+        );
+        res.status(200).json(classData.rows);
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }

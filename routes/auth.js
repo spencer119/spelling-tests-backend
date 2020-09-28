@@ -2,10 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Admin = require('../models/Admin');
 const db = require('../db');
-const { restart } = require('nodemon');
-
 router.post('/', (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
