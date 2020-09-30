@@ -25,11 +25,15 @@ router.get('/', (req, res) => {
       let classes = await db.query(
         `SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`
       );
+      let tests = await db.query(
+        `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`
+      );
 
       res.status(200).json({
         students: students.rows,
         groups: groups.rows,
         classes: classes.rows,
+        tests: tests.rows
       });
     } else {
       return res.status(403).json({ msg: 'Unauthorized' });
@@ -153,7 +157,24 @@ router.get('/tests', (req, res) => {
       res.status(403).json({ err });
     } else {
       if (auth.teacher_id) {
-        res.status(200)
+        db.query(`SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`, (err, data) => {
+          if (err) {
+            res.status(500).json(err);
+          } else {
+            let testIDs = '';
+            data.rows.forEach(test => {
+              testIDs = testIDs.concat(`'${test.test_id}',`)
+            })
+            testIDs = testIDs.slice(0, -1)
+            db.query(`SELECT * FROM testlines WHERE test_id IN (${testIDs})`, (err, sdata) => {
+              if (err) {
+                res.status(500).json(err);
+              } else {
+                res.status(200).json({tests: data.rows, testlines: sdata.rows})
+              }
+            })
+          }
+        })
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
@@ -173,7 +194,6 @@ router.post('/tests', (req, res) => {
           if (err) {
             return res.status(500);
           } else {
-            console.log(data.rows[0].test_id);
             let queryString = `INSERT INTO testlines (test_id, line_number, word) VALUES `;
             for (i=0; i < words.length; i++)
             {
@@ -185,7 +205,7 @@ router.post('/tests', (req, res) => {
                 res.status(500);
                 db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`)
               } else {
-                res.status(201)
+                res.status(201).json({})
               }
             })
           }
