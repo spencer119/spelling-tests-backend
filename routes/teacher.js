@@ -33,7 +33,7 @@ router.get('/', (req, res) => {
         students: students.rows,
         groups: groups.rows,
         classes: classes.rows,
-        tests: tests.rows
+        tests: tests.rows,
       });
     } else {
       return res.status(403).json({ msg: 'Unauthorized' });
@@ -150,6 +150,40 @@ router.get('/classes', (req, res) => {
     }
   });
 });
+router.put('/groups', (req, res) => {
+  let token = req.headers.token;
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      res.status(403).json({ err });
+    } else {
+      if (auth.teacher_id) {
+        if (req.body.new_test === '') {
+          db.query(
+            `UPDATE groups SET active_test = NULL WHERE group_id = '${req.body.group_id}'`,
+            (err, data) => {
+              if (err) {
+                res.status(500).json(err);
+              } else {
+                res.status(200).json();
+              }
+            }
+          );
+        } else {
+          db.query(
+            `UPDATE groups SET active_test = '${req.body.new_test}' WHERE group_id = '${req.body.group_id}'`,
+            (err, data) => {
+              if (err) {
+                res.status(500).json(err);
+              } else {
+                res.status(200).json();
+              }
+            }
+          );
+        }
+      }
+    }
+  });
+});
 router.get('/tests', (req, res) => {
   let userToken = req.headers.token;
   jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
@@ -157,24 +191,32 @@ router.get('/tests', (req, res) => {
       res.status(403).json({ err });
     } else {
       if (auth.teacher_id) {
-        db.query(`SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`, (err, data) => {
-          if (err) {
-            res.status(500).json(err);
-          } else {
-            let testIDs = '';
-            data.rows.forEach(test => {
-              testIDs = testIDs.concat(`'${test.test_id}',`)
-            })
-            testIDs = testIDs.slice(0, -1)
-            db.query(`SELECT * FROM testlines WHERE test_id IN (${testIDs})`, (err, sdata) => {
-              if (err) {
-                res.status(500).json(err);
-              } else {
-                res.status(200).json({tests: data.rows, testlines: sdata.rows})
-              }
-            })
+        db.query(
+          `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`,
+          (err, data) => {
+            if (err) {
+              res.status(500).json(err);
+            } else {
+              let testIDs = '';
+              data.rows.forEach((test) => {
+                testIDs = testIDs.concat(`'${test.test_id}',`);
+              });
+              testIDs = testIDs.slice(0, -1);
+              db.query(
+                `SELECT * FROM testlines WHERE test_id IN (${testIDs})`,
+                (err, sdata) => {
+                  if (err) {
+                    res.status(500).json(err);
+                  } else {
+                    res
+                      .status(200)
+                      .json({ tests: data.rows, testlines: sdata.rows });
+                  }
+                }
+              );
+            }
           }
-        })
+        );
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
@@ -190,26 +232,32 @@ router.post('/tests', (req, res) => {
       if (auth.teacher_id) {
         let words = req.body.words;
         let testName = req.body.name;
-        db.query(`INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`, (err, data) => {
-          if (err) {
-            return res.status(500);
-          } else {
-            let queryString = `INSERT INTO testlines (test_id, line_number, word) VALUES `;
-            for (i=0; i < words.length; i++)
-            {
-              queryString = queryString.concat(`('${data.rows[0].test_id}', ${i + 1}, '${words[i]}'),`)
-            }
-              queryString = queryString.slice(0, -1)
-            db.query(queryString, (err,sdata) => {
-              if (err) {
-                res.status(500);
-                db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`)
-              } else {
-                res.status(201).json({})
+        db.query(
+          `INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`,
+          (err, data) => {
+            if (err) {
+              return res.status(500);
+            } else {
+              let queryString = `INSERT INTO testlines (test_id, line_number, word) VALUES `;
+              for (i = 0; i < words.length; i++) {
+                queryString = queryString.concat(
+                  `('${data.rows[0].test_id}', ${i + 1}, '${words[i]}'),`
+                );
               }
-            })
+              queryString = queryString.slice(0, -1);
+              db.query(queryString, (err, sdata) => {
+                if (err) {
+                  res.status(500);
+                  db.query(
+                    `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                  );
+                } else {
+                  res.status(201).json({});
+                }
+              });
+            }
           }
-        })
+        );
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
