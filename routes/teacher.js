@@ -150,6 +150,29 @@ router.get('/classes', (req, res) => {
     }
   });
 });
+router.post('/classes', (req, res) => {
+  let token = req.headers.token;
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      return res.status(403);
+    }
+    if (auth.teacher_id) {
+      db.query(
+        `INSERT INTO classes (class_name, teacher_id) VALUES ('${req.body.class_name}', '${auth.teacher_id}')`,
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ err });
+          } else {
+            res.status(201).json(data);
+          }
+        }
+      );
+    } else {
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
+  });
+});
 router.put('/groups', (req, res) => {
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
