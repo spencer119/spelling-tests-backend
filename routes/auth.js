@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
-router.post('/', (req, res) => {
+router.post('/teacher', (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
   db.query(
@@ -17,6 +17,25 @@ router.post('/', (req, res) => {
             return res.status(500).json({ msg: 'Authentication error' });
           } else {
             res.json({ token });
+          }
+        });
+      }
+    }
+  );
+});
+router.post('/student', (req, res) => {
+  let username = req.body.username;
+  db.query(
+    `SELECT student_id, first_name, last_name, username, class_id, teacher_id, group_id FROM students WHERE username = '${req.body.username}'`,
+    (err, data) => {
+      if (data.rows.length === 0 || err) {
+        return res.status(401).json({ msg: 'Invalid username' });
+      } else {
+        jwt.sign(data.rows[0], process.env.JWT_SECRET, (err, token) => {
+          if (err) {
+            return res.status(500).json({ msg: 'Authentication error' });
+          } else {
+            res.json({ token, test_id: '1' });
           }
         });
       }
