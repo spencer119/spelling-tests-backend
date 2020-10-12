@@ -87,6 +87,30 @@ router.post('/student', (req, res) => {
     }
   });
 });
+router.post('/student/changeclass', (req, res) => {
+  let token = req.headers.token;
+  let student_id = req.body.student_id;
+  let class_id = req.body.class_id
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      return res.status(403);
+    }
+    if (auth.teacher_id) {
+      db.query(
+        `UPDATE students SET class_id = '${class_id}' WHERE student_id = '${student_id}'`,
+        (err, data) => {
+          if (err) {
+            return res.status(500);
+          } else {
+            return res.status(201).json(data);
+          }
+        }
+      );
+    } else {
+      return res.status(403).json({ msg: 'Unauthorized' });
+    }
+  });
+});
 router.get('/groups', (req, res) => {
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
