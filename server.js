@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
-app.use('/api/user', require('./routes/user'));
+app.use('/api/student', require('./routes/student'));
 
 // Connect to database
 mongoose.connect(
@@ -35,7 +35,6 @@ mongoose.connect(
     console.log('Connected to Database');
   }
 );
-
 
 const PORT = process.env.PORT || 5000;
 

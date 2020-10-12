@@ -15,15 +15,14 @@ router.post('/teacher', (req, res) => {
         jwt.sign(data.rows[0], process.env.JWT_SECRET, (err, token) => {
           if (err) {
             return res.status(500).json({ msg: 'Authentication error' });
-          }
-          else if (password === 'eagles2020') {
-            res.json({firstLogin: true, token})
+          } else if (password === 'eagles2020') {
+            res.json({ firstLogin: true, token });
           } else {
             res.json({ token });
           }
         });
       } else {
-        return res.status(401).json({msg: 'Invalid credentials.'})
+        return res.status(401).json({ msg: 'Invalid credentials.' });
       }
     }
   );
@@ -36,7 +35,7 @@ router.post('/teacher/change/password', (req, res) => {
     }
     if (auth.teacher_id) {
       let newHash = bcrypt.hashSync(req.body.password);
-      console.log(`${req.body.password} : ${newHash}`)
+      console.log(`${req.body.password} : ${newHash}`);
       db.query(
         `UPDATE teachers SET password = '${newHash}' WHERE teacher_id = '${auth.teacher_id}'`,
         (err, data) => {
@@ -65,7 +64,7 @@ router.post('/student', (req, res) => {
           if (err) {
             return res.status(500).json({ msg: 'Authentication error' });
           } else {
-            res.json({ token, test_id: '1' });
+            res.json({ token });
           }
         });
       }
