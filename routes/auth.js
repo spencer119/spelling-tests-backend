@@ -35,7 +35,6 @@ router.post('/teacher/change/password', (req, res) => {
     }
     if (auth.teacher_id) {
       let newHash = bcrypt.hashSync(req.body.password);
-      console.log(`${req.body.password} : ${newHash}`);
       db.query(
         `UPDATE teachers SET password = '${newHash}' WHERE teacher_id = '${auth.teacher_id}'`,
         (err, data) => {
@@ -53,7 +52,6 @@ router.post('/teacher/change/password', (req, res) => {
   });
 });
 router.post('/student', (req, res) => {
-  let username = req.body.username;
   db.query(
     `SELECT student_id, first_name, last_name, username, class_id, teacher_id, group_id FROM students WHERE username = '${req.body.username}'`,
     (err, data) => {

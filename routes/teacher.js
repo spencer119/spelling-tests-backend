@@ -3,10 +3,11 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-const Group = require('../models/Group');
-const Test = require('../models/Test');
 const Result = require('../models/Result');
 const db = require('../db');
+const AWS = require('aws-sdk');
+AWS.config.update({accessKeyId: process.env.AWS_KEY_ID, secretAccessKey: process.env.AWS_SECRET})
+let s3 = new AWS.S3();
 let audioPath = path.join(__dirname, '../data/audio');
 router.get('/', (req, res) => {
   // gets everything corresponding to the teacher, students, classes, groups
@@ -28,12 +29,16 @@ router.get('/', (req, res) => {
       let tests = await db.query(
         `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`
       );
+      let results = await db.query(
+        `SELECT * FROM results WHERE teacher_id='${auth.teacher_id}'`
+      );
 
       res.status(200).json({
         students: students.rows,
         groups: groups.rows,
         classes: classes.rows,
         tests: tests.rows,
+        results: results.rows
       });
     } else {
       return res.status(403).json({ msg: 'Unauthorized' });
@@ -87,17 +92,18 @@ router.post('/student', (req, res) => {
     }
   });
 });
-router.post('/student/changeclass', (req, res) => {
+router.post('/students/edit', (req, res) => {
   let token = req.headers.token;
   let student_id = req.body.student_id;
-  let class_id = req.body.class_id
+  let class_id = req.body.class_id;
+  let group_id = req.body.group_id;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
       return res.status(403);
     }
     if (auth.teacher_id) {
       db.query(
-        `UPDATE students SET class_id = '${class_id}' WHERE student_id = '${student_id}'`,
+        `UPDATE students SET class_id = '${class_id}', group_id = '${group_id}' WHERE student_id = '${student_id}'`,
         (err, data) => {
           if (err) {
             return res.status(500);
@@ -244,6 +250,7 @@ router.get('/tests', (req, res) => {
             if (err) {
               res.status(500).json(err);
             } else {
+              if (data.rows.length < 1) return res.status(200).json({tests: [], testlines: []})
               let testIDs = '';
               data.rows.forEach((test) => {
                 testIDs = testIDs.concat(`'${test.test_id}',`);
@@ -277,7 +284,7 @@ router.post('/tests', (req, res) => {
       res.status(403).json({ err });
     } else {
       if (auth.teacher_id) {
-        let words = req.body.words;
+        let words = req.body.words.split(',');
         let testName = req.body.name;
         db.query(
           `INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`,
@@ -285,10 +292,10 @@ router.post('/tests', (req, res) => {
             if (err) {
               return res.status(500);
             } else {
-              let queryString = `INSERT INTO testlines (test_id, line_number, word) VALUES `;
+              let queryString = `INSERT INTO testlines (test_id, line_number, word, audio_path) VALUES `;
               for (i = 0; i < words.length; i++) {
                 queryString = queryString.concat(
-                  `('${data.rows[0].test_id}', ${i + 1}, '${words[i]}'),`
+                  `('${data.rows[0].test_id}', ${i + 1}, '${words[i]}', 'https://spelling-tests.s3-us-west-2.amazonaws.com/d90a549c-d852-45d0-ae8f-c29d78206588/${words[i].toLowerCase()}.mp3'),`
                 );
               }
               queryString = queryString.slice(0, -1);
@@ -299,7 +306,69 @@ router.post('/tests', (req, res) => {
                     `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
                   );
                 } else {
-                  res.status(201).json({});
+                  if (req.files.file[0] === undefined) { // if only one audio file is uploaded
+                    let file = req.files.file
+                    file.mv(path.join(audioPath, `/${file.name.replace("'", '%27')}`), () => {
+                      fs.readFile(path.join(audioPath, `/${file.name.replace("'", '%27')}`), (err, fsdata) => {
+                        if (err) {
+                          console.error(err);
+                          db.query(
+                            `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                          );
+                          return res.status(500)
+                        }
+                        const params = {
+                          Bucket: 'spelling-tests',
+                          Key: `${auth.teacher_id}/${file.name.replace("'", '%27').toLowerCase()}`,
+                          Body: fs.createReadStream(path.join(audioPath, `/${file.name.replace("'", '%27')}`)),
+                          ACL: 'public-read'
+                        };
+                        s3.upload(params, (s3err, s3data) => {
+                          if (s3err) {
+                            console.error(s3err);
+                            db.query(
+                              `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                            );
+                            return res.status(500)
+                          } else {
+                            res.status(201).json();
+                          }
+                        })
+                      })
+                    });
+                  } else {
+                    req.files.file.map((file) => {
+                      file.mv(path.join(audioPath, `/${file.name.replace("'", '%27')}`), () => {
+                        fs.readFile(path.join(audioPath, `/${file.name.replace("'", '%27')}`), (err, fsdata) => {
+                          if (err) {
+                            console.error(err);
+                            db.query(
+                              `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                            );
+                            return res.status(500)
+                          }
+                          const params = {
+                            Bucket: 'spelling-tests',
+                            Key: `${auth.teacher_id}/${file.name.replace("'", '%27').toLowerCase()}`,
+                            Body: fs.createReadStream(path.join(audioPath, `/${file.name.replace("'", '%27')}`)),
+                            ACL: 'public-read'
+                          };
+                          s3.upload(params, (s3err, s3data) => {
+                            if (s3err) {
+                              console.error(s3err);
+                              db.query(
+                                `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                              );
+                              return res.status(500)
+                            } else {
+                              res.status(201).json();
+                            }
+                          })
+                        })
+                      });
+                      
+                    });
+                  }
                 }
               });
             }
@@ -317,14 +386,16 @@ router.delete('/tests', (req, res) => {
     if (err) {
       res.status(403).json({ err });
     } else {
-      if (auth.admin) {
-        Test.deleteOne({ name: req.body.test })
-          .then(() => {
-            res.status(200), json({ msg: 'Test deleted' });
-          })
-          .catch(() =>
-            res.json(500).json({ msg: 'There was an error deleting the test' })
-          );
+      if (auth.teacher_id) {
+        console.log(req.body)
+        db.query(`DELETE from tests WHERE test_id='${req.body.test}'`, (err, data) => {
+          if (err) {
+            console.error(err)
+            res.status(500).json(err);
+          } else {
+            res.status(200).json(data)
+          }
+        })
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
@@ -364,29 +435,10 @@ router.get('/results', (req, res) => {
       res.status(403).json({ err });
     } else {
       console.log(auth);
-      if (auth.admin) {
-        Result.find({})
-          .then((results) => {
-            if (!auth.canViewNames) {
-              let counter = 1;
-              let studentMatches = {};
-              results.map((result) => {
-                if (studentMatches.hasOwnProperty(result.name)) {
-                  result.name = studentMatches[`${result.name}`];
-                } else {
-                  studentMatches[result.name] = `Student ${counter}`;
-                  result.name = `Student ${counter}`;
-                }
-                return counter++;
-              });
-              res.json({ results });
-            } else {
-              res.json({ results });
-            }
-          })
-          .catch((err) => {
-            res.status(500).json({ err });
-          });
+      if (auth.teacher_id) {
+        db.query(`SELECT * FROM results WHERE teacher_id = '${auth.teacher_id}'`, (err, data) => {
+          res.status(200).json(data.rows)
+        })
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
