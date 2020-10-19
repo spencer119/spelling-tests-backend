@@ -34,13 +34,16 @@ router.post('/teacher/change/password', (req, res) => {
       return res.status(403);
     }
     if (auth.teacher_id) {
+      if (req.body.password === 'eagles2020') {
+        return res.status(400).json({msg: 'You must change your password to something different from your current password.'})
+      }
       let newHash = bcrypt.hashSync(req.body.password);
       db.query(
         `UPDATE teachers SET password = '${newHash}' WHERE teacher_id = '${auth.teacher_id}'`,
         (err, data) => {
           if (err) {
             console.log(err);
-            res.status(500).json({ err });
+            res.status(500).json({msg: 'An error has occured please try again.'});
           } else {
             res.status(200).json(data);
           }

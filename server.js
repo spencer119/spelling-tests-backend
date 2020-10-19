@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { Client } = require('pg');
 const cors = require('cors');
 require('dotenv/config');
 const fileUpload = require('express-fileupload');

@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const Student = require('../models/Student');
-const Group = require('../models/Group');
-const Test = require('../models/Test');
 require('dotenv/config');
 const db = require('../db');
 router.get('/testId', (req, res) => {
