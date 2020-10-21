@@ -70,9 +70,11 @@ router.post('/test/submit', (req, res) => {
         console.error(err)
         return res.status(500)
       } else {
-        let queryString = `INSERT INTO resultdata (result_id, word, answer, correct) VALUES `;
+        let queryString = `INSERT INTO resultdata (result_id, word, answer, correct, line_number) VALUES `;
+        let line_number = 1;
         testData.forEach(x => {
-          queryString = queryString.concat(`('${data.rows[0].result_id}', '${x.word}', '${x.ans}', ${x.word === x.ans ? true : false}),`)
+          queryString = queryString.concat(`('${data.rows[0].result_id}', '${x.word}', '${x.ans}', ${x.word === x.ans ? true : false}, ${line_number}),`)
+          line_number++;
         })
         queryString = queryString.slice(0, -1);
         db.query(queryString, (err, sdata) => {

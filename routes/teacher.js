@@ -3,7 +3,6 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-const Result = require('../models/Result');
 const db = require('../db');
 const AWS = require('aws-sdk');
 AWS.config.update({accessKeyId: process.env.AWS_KEY_ID, secretAccessKey: process.env.AWS_SECRET})
@@ -53,22 +52,11 @@ router.get('/result', (req, res) => {
       return res.status(403);
     }
     if (auth.teacher_id) {
-      db.query(`SELECT * FROM results WHERE result_id = '${result_id}'`, (err,data) => {
-        if(err) {
-          console.error(err);
-          return res.status(500);
-        } else {
-          db.query(`SELECT * FROM resultdata WHERE result_id = '${result_id}'`, (err2,sdata) => {
-            if (err) {
-              res.status(500);
-              return console.error(err2)
-            } else {
-              return res.status(200).json({result: data.rows[0], resultdata: sdata.rows})
-            }
-            
-          })
-        }
-      })
+      let result = await db.query(`SELECT * FROM results WHERE result_id = '${result_id}'`);
+      let resultdata = await db.query(`SELECT * FROM resultdata WHERE result_id = '${result_id}'`)
+      let test_name = await db.query(`SELECT test_name FROM tests WHERE test_id = '${result.rows[0].test_id}'`)
+      let student = await db.query(`SELECT first_name, last_name, username FROM students WHERE student_id = '${result.rows[0].student_id}'`)
+      res.status(200).json({result: result.rows[0], resultdata: resultdata.rows, test_name: test_name.rows[0].test_name, student: student.rows[0]})
       
     } else {
       return res.status(403).json({ msg: 'Unauthorized' });
