@@ -27,6 +27,18 @@ router.post('/teacher', (req, res) => {
     }
   );
 });
+router.get('/admin', (req,res) => {
+  let token = req.headers.token;
+  console.log('test')
+  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
+    if (err) {
+      return res.status(403);
+    } else {
+      return res.status(200).json(auth.is_admin)
+    }
+    
+  });
+})
 router.post('/teacher/change/password', (req, res) => {
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
