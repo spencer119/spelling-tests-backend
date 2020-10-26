@@ -35,7 +35,7 @@ router.post('/teacher/change/password', (req, res) => {
     }
     if (auth.teacher_id) {
       if (req.body.password === 'eagles2020') {
-        return res.status(400).json({msg: 'You must change your password to something different from your current password.'})
+        return res.status(400).json({msg: 'You must change your password to something different from the default password.'})
       }
       let newHash = bcrypt.hashSync(req.body.password);
       db.query(

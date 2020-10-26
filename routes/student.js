@@ -60,12 +60,13 @@ router.post('/test/submit', (req, res) => {
     let total = 0;
     let correct = 0;
     testData.map(x => {
-      if (x.ans === x.word) correct++;
+      if (x.ans.toLowerCase() === x.word.toLowerCase()) correct++;
       total++;
     })
     let score = correct / total;
-
-    db.query(`INSERT INTO results (student_id, test_id, teacher_id, group_id, correct, total, score) VALUES ('${auth.student_id}', '${req.body.test_id}', '${auth.teacher_id}', '${auth.group_id}', ${correct}, ${total}, ${score}) RETURNING result_id`, (err, data) => {
+    let attempts = await db.query(`SELECT attempt FROM results WHERE student_id = '${auth.student_id}' AND test_id = '${req.body.test_id}'`)
+    console.log(attempts)
+    db.query(`INSERT INTO results (student_id, test_id, teacher_id, group_id, correct, total, score, attempt) VALUES ('${auth.student_id}', '${req.body.test_id}', '${auth.teacher_id}', '${auth.group_id}', ${correct}, ${total}, ${score}, ${attempts.rowCount + 1}) RETURNING result_id`, (err, data) => {
       if (err) {
         console.error(err)
         return res.status(500)
