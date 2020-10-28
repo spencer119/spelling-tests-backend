@@ -29,7 +29,6 @@ router.post('/teacher', (req, res) => {
 });
 router.get('/admin', (req,res) => {
   let token = req.headers.token;
-  console.log('test')
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
       return res.status(403);

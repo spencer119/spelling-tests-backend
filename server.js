@@ -25,6 +25,7 @@ app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/student', require('./routes/student'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Connect to database
 mongoose.connect(
