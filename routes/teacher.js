@@ -99,7 +99,7 @@ router.post('/student', (req, res) => {
         })`,
         (err, data) => {
           if (err) {
-            return res.status(500);
+            return res.status(500).json(err);
           } else {
             return res.status(201).json(data);
           }
@@ -304,6 +304,7 @@ router.post('/tests', (req, res) => {
       if (auth.teacher_id) {
         let words = req.body.words.split(',');
         let testName = req.body.name;
+        let filetype = req.body.filetype
         db.query(
           `INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`,
           (err, data) => {
@@ -312,9 +313,16 @@ router.post('/tests', (req, res) => {
             } else {
               let queryString = `INSERT INTO testlines (test_id, line_number, word, audio_path) VALUES `;
               for (i = 0; i < words.length; i++) {
-                queryString = queryString.concat(
-                  `('${data.rows[0].test_id}', ${i + 1}, '${words[i]}', 'https://spelling-tests.s3-us-west-2.amazonaws.com/d90a549c-d852-45d0-ae8f-c29d78206588/${words[i].toLowerCase()}.mp3'),`
-                );
+                if (filetype === 'mp3') {
+                  queryString = queryString.concat(
+                    `('${data.rows[0].test_id}', ${i + 1}, '${words[i]}', 'https://spelling-tests.s3-us-west-2.amazonaws.com/${auth.teacher_id}/${words[i].toLowerCase()}.mp3'),`
+                  );
+                } else {
+                  queryString = queryString.concat(
+                    `('${data.rows[0].test_id}', ${i + 1}, '${words[i]}', 'https://spelling-tests.s3-us-west-2.amazonaws.com/${auth.teacher_id}/${words[i].toLowerCase()}.m4a'),`
+                  );
+                }
+                
               }
               queryString = queryString.slice(0, -1);
               db.query(queryString, (err, sdata) => {
