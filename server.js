@@ -6,7 +6,7 @@ require('dotenv/config');
 const fileUpload = require('express-fileupload');
 const app = express();
 
-app.use(cors());
+app.use(cors({origin: true,credentials:true}));
 app.use(express.static('./data/'));
 app.use(express.json());
 app.use(fileUpload());
@@ -46,6 +46,12 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/student', require('./routes/student'));
 app.use('/api/admin', require('./routes/admin'));
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "https://brmesspelling.netlify.app"); 
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 
 
 // Connect to database
