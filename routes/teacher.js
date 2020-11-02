@@ -8,40 +8,30 @@ const AWS = require('aws-sdk');
 AWS.config.update({accessKeyId: process.env.AWS_KEY_ID, secretAccessKey: process.env.AWS_SECRET})
 let s3 = new AWS.S3();
 let audioPath = path.join(__dirname, '../data/audio');
-router.get('/', (req, res) => {
-  // gets everything corresponding to the teacher, students, classes, groups
-  let token = req.headers.token;
-  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
-    if (err) {
-      return res.status(403);
-    }
-    if (auth.teacher_id) {
-      let students = await db.query(
-        `SELECT * FROM students WHERE teacher_id='${auth.teacher_id}'`
-      );
-      let groups = await db.query(
-        `SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`
-      );
-      let classes = await db.query(
-        `SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`
-      );
-      let tests = await db.query(
-        `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`
-      );
-      let results = await db.query(
-        `SELECT * FROM results WHERE teacher_id='${auth.teacher_id}'`
-      );
+router.get('/', async (req, res) => {
+  let auth = res.locals.auth;
+  let students = await db.query(
+    `SELECT * FROM students WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let groups = await db.query(
+    `SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let classes = await db.query(
+    `SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let tests = await db.query(
+    `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let results = await db.query(
+    `SELECT * FROM results WHERE teacher_id='${auth.teacher_id}'`
+  );
 
-      res.status(200).json({
-        students: students.rows,
-        groups: groups.rows,
-        classes: classes.rows,
-        tests: tests.rows,
-        results: results.rows
-      });
-    } else {
-      return res.status(403).json({ msg: 'Unauthorized' });
-    }
+  res.status(200).json({
+    students: students.rows,
+    groups: groups.rows,
+    classes: classes.rows,
+    tests: tests.rows,
+    results: results.rows
   });
 });
 router.get('/result', (req, res) => {
