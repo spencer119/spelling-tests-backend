@@ -15,6 +15,8 @@ router.get('/testId', (req, res) => {
           if (err) {
             return res.status(500);
           } else {
+            if(data.rows[0].active_test === null) return res.status(200).json({test_id: null, first_name: auth.first_name})
+            console.log(data)
             db.query(`SELECT * FROM results WHERE test_id = '${data.rows[0].active_test}' AND student_id = '${auth.student_id}'`, (err, sdata) => {
                 return res.status(200).json({
                   test_id: data.rows[0].active_test,

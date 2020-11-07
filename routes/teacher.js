@@ -295,6 +295,32 @@ router.post('/tests', (req, res) => {
         let words = req.body.words.split(',');
         let testName = req.body.name;
         let filetype = req.body.filetype
+        // Check files and word matches
+        console.log(words)
+        if (filetype === 'm4a')
+        {
+          let checkArr = words;
+          let invalidFile = false;
+          req.files.file.map(f => {
+            if (f.mimetype !== 'audio/x-m4a') invalidFile = true
+            checkArr = checkArr.filter(word => word !== f.name.replace('.m4a', ''))
+          })
+          if (invalidFile) return res.status(400).json({msg: 'Please make sure all the files match the file type (.m4a) you selected.'})
+          if (checkArr.length !== 0) return res.status(400).json({msg: 'Please make sure every word has an audio file spelled the EXACT same way.'})
+        } else if (filetype === 'mp3')
+        {
+          let checkArr = words;
+          let invalidFile = false;
+          console.log(req.files.file)
+          req.files.file.map(f => {
+            if (f.mimetype !== 'audio/mpeg') invalidFile = true
+            checkArr = checkArr.filter(word => word !== f.name.replace('.mp3', ''))
+          })
+          if (invalidFile) return res.status(400).json({msg: 'Please make sure all the files match the file type (.mp3) you selected.'})
+          if (checkArr.length !== 0) return res.status(400).json({msg: 'Please make sure every word has an audio file spelled the EXACT same way.'})
+        } else return res.status(400).json({msg: 'Invalid file type.'})
+        
+        console.log(req.files.file)
         db.query(
           `INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`,
           (err, data) => {
