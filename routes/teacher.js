@@ -295,6 +295,7 @@ router.post('/tests', (req, res) => {
         let words = req.body.words.split(',');
         let testName = req.body.name;
         let filetype = req.body.filetype
+        let attempts = req.body.attempts
         // Check files and word matches
         console.log(words)
         if (filetype === 'm4a')
@@ -322,7 +323,7 @@ router.post('/tests', (req, res) => {
         
         console.log(req.files.file)
         db.query(
-          `INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`,
+          `INSERT INTO tests (teacher_id, test_name, attempts) VALUES ('${auth.teacher_id}', '${testName}', ${attempts}) RETURNING test_id`,
           (err, data) => {
             if (err) {
               return res.status(500);
@@ -430,7 +431,7 @@ router.delete('/tests', (req, res) => {
     } else {
       if (auth.teacher_id) {
         console.log(req.body)
-        db.query(`DELETE from tests WHERE test_id='${req.body.test}'`, (err, data) => {
+        db.query(`UPDATE tests SET archived = true WHERE test_id='${req.body.test}'`, (err, data) => {
           if (err) {
             console.error(err)
             res.status(500).json(err);
