@@ -295,8 +295,35 @@ router.post('/tests', (req, res) => {
         let words = req.body.words.split(',');
         let testName = req.body.name;
         let filetype = req.body.filetype
+        let attempts = req.body.attempts
+        // Check files and word matches
+        console.log(words)
+        if (filetype === 'm4a')
+        {
+          let checkArr = words;
+          let invalidFile = false;
+          req.files.file.map(f => {
+            if (f.mimetype !== 'audio/x-m4a') invalidFile = true
+            checkArr = checkArr.filter(word => word !== f.name.replace('.m4a', ''))
+          })
+          if (invalidFile) return res.status(400).json({msg: 'Please make sure all the files match the file type (.m4a) you selected.'})
+          if (checkArr.length !== 0) return res.status(400).json({msg: 'Please make sure every word has an audio file spelled the EXACT same way.'})
+        } else if (filetype === 'mp3')
+        {
+          let checkArr = words;
+          let invalidFile = false;
+          console.log(req.files.file)
+          req.files.file.map(f => {
+            if (f.mimetype !== 'audio/mpeg') invalidFile = true
+            checkArr = checkArr.filter(word => word !== f.name.replace('.mp3', ''))
+          })
+          if (invalidFile) return res.status(400).json({msg: 'Please make sure all the files match the file type (.mp3) you selected.'})
+          if (checkArr.length !== 0) return res.status(400).json({msg: 'Please make sure every word has an audio file spelled the EXACT same way.'})
+        } else return res.status(400).json({msg: 'Invalid file type.'})
+        
+        console.log(req.files.file)
         db.query(
-          `INSERT INTO tests (teacher_id, test_name) VALUES ('${auth.teacher_id}', '${testName}') RETURNING test_id`,
+          `INSERT INTO tests (teacher_id, test_name, attempts) VALUES ('${auth.teacher_id}', '${testName}', ${attempts}) RETURNING test_id`,
           (err, data) => {
             if (err) {
               return res.status(500);
@@ -396,22 +423,34 @@ router.post('/tests', (req, res) => {
     }
   });
 });
-router.delete('/tests', (req, res) => {
+router.delete('/tests', async (req, res) => {
   let userToken = req.headers.token;
   jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
       res.status(403).json({ err });
     } else {
       if (auth.teacher_id) {
-        console.log(req.body)
-        db.query(`DELETE from tests WHERE test_id='${req.body.test}'`, (err, data) => {
-          if (err) {
-            console.error(err)
-            res.status(500).json(err);
-          } else {
-            res.status(200).json(data)
-          }
-        })
+        let existing = await db.query(`SELECT result_id FROM results WHERE test_id='${req.body.test}'`)
+        if (existing.rows.length > 0) {
+          db.query(`UPDATE tests SET archived = true WHERE test_id='${req.body.test}'`, (err, data) => {
+            if (err) {
+              console.error(err)
+              res.status(500).json(err);
+            } else {
+              res.status(200).json(data)
+            }
+          })
+        } else {
+          db.query(`DELETE FROM tests WHERE test_id='${req.body.test}'`, (err, data) => {
+            if (err) {
+              console.error(err)
+              res.status(500).json(err);
+            } else {
+              res.status(200).json(data)
+            }
+          })
+        }
+       
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
