@@ -423,22 +423,34 @@ router.post('/tests', (req, res) => {
     }
   });
 });
-router.delete('/tests', (req, res) => {
+router.delete('/tests', async (req, res) => {
   let userToken = req.headers.token;
   jwt.verify(userToken, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
       res.status(403).json({ err });
     } else {
       if (auth.teacher_id) {
-        console.log(req.body)
-        db.query(`UPDATE tests SET archived = true WHERE test_id='${req.body.test}'`, (err, data) => {
-          if (err) {
-            console.error(err)
-            res.status(500).json(err);
-          } else {
-            res.status(200).json(data)
-          }
-        })
+        let existing = await db.query(`SELECT result_id FROM results WHERE test_id='${req.body.test}'`)
+        if (existing.rows.length > 0) {
+          db.query(`UPDATE tests SET archived = true WHERE test_id='${req.body.test}'`, (err, data) => {
+            if (err) {
+              console.error(err)
+              res.status(500).json(err);
+            } else {
+              res.status(200).json(data)
+            }
+          })
+        } else {
+          db.query(`DELETE FROM tests WHERE test_id='${req.body.test}'`, (err, data) => {
+            if (err) {
+              console.error(err)
+              res.status(500).json(err);
+            } else {
+              res.status(200).json(data)
+            }
+          })
+        }
+       
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
