@@ -35,6 +35,17 @@ const checkAuth = async (req,res,next) => {
         next();
       } else return res.status(403)
     })
+  } else if (req.path.startsWith('/api/student')) {
+    jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
+      console.log(auth)
+      if(err) {
+        console.error(err)
+        return res.status(403)
+      } else if(auth.student_id) {
+        res.locals.auth = auth
+        next();
+      } else return res.status(403)
+    })
   } else next();
 }
 

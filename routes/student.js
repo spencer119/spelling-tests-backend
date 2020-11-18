@@ -32,24 +32,24 @@ router.get('/testId', (req, res) => {
     }
   });
 });
+router.get('/scores', async (req,res) => {
+  let auth = res.locals.auth;
+  let results = await db.query(`SELECT * FROM results WHERE student_id='${auth.student_id}'`)
+  let testNames = await db.query(`SELECT test_id, test_name FROM tests WHERE test_id IN (SELECT test_id FROM results WHERE student_id='${auth.student_id}');`)
+  return res.status(200).json({results: results.rows, testNames: testNames.rows})
+  
+})
 router.get('/test', (req, res) => {
-  let token = req.headers.token;
-  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
-    if (err) {
-      res.status(500);
-    } else {
-      db.query(
-        `SELECT * FROM testlines WHERE test_id = '${req.query.test_id}' ORDER BY line_number`,
-        (err, data) => {
-          if (err) {
-            return res.status(500);
-          } else {
-            res.json({ test_id: req.query.test_id, testlines: data.rows });
-          }
-        }
-      );
+  db.query(
+    `SELECT * FROM testlines WHERE test_id = '${req.query.test_id}' ORDER BY line_number`,
+    (err, data) => {
+      if (err) {
+        return res.status(500);
+      } else {
+        res.json({ test_id: req.query.test_id, testlines: data.rows });
+      }
     }
-  });
+  );
 });
 router.post('/test/submit', (req, res) => {
   let token = req.headers.token;
