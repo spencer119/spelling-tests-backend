@@ -501,4 +501,12 @@ router.get('/results', (req, res) => {
   });
 });
 
+router.delete('/result', async (req,res) => {
+  db.query(`DELETE from results WHERE result_id = '${req.headers.result_id}'`, (err, data) => {
+    if (err) {
+      res.status(500).json(err)
+    } else return res.status(200).json(data)
+  })
+})
+
 module.exports = router;
