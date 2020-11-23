@@ -12,8 +12,9 @@ router.post('/teacher', (req, res) => {
       if (data.rows.length === 0 || err) {
         return res.status(401).json({ msg: 'Invalid credentials.' });
       } else if (bcrypt.compareSync(password, data.rows[0].password)) {
-        jwt.sign(data.rows[0], process.env.JWT_SECRET, (err, token) => {
+        jwt.sign(data.rows[0], process.env.JWT_SECRET,{expiresIn: '20s'}, (err, token) => {
           if (err) {
+            console.log(err)
             return res.status(500).json({ msg: 'Authentication error' });
           } else if (password === 'eagles2020') {
             res.json({ firstLogin: true, token });
@@ -72,7 +73,7 @@ router.post('/student', (req, res) => {
       if (data.rows.length === 0 || err) {
         return res.status(401).json({ msg: 'Invalid username' });
       } else {
-        jwt.sign(data.rows[0], process.env.JWT_SECRET, (err, token) => {
+        jwt.sign(data.rows[0], {expiresIn: '2h'}, process.env.JWT_SECRET, (err, token) => {
           if (err) {
             return res.status(500).json({ msg: 'Authentication error' });
           } else {
