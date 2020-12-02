@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 require('dotenv/config');
 const db = require('../db');
 router.get('/testId', async (req, res) => {
-  let token = req.headers.token;
   let auth = res.locals.auth
   let activeTest = await db.query(`SELECT active_test FROM groups WHERE group_id='${auth.group_id}'`)
   if (activeTest.rows[0].active_test === null) return res.status(200).json({test_id: null, first_name: auth.first_name})

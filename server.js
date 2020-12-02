@@ -29,7 +29,7 @@ const checkAuth = async (req,res,next) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
       if(err) {
         console.error(err)
-        return res.status(403)
+        return res.status(403).json({expired: true})
       } else if(auth.is_admin) {
         res.locals.auth = auth
         next();
@@ -40,7 +40,7 @@ const checkAuth = async (req,res,next) => {
       console.log(auth)
       if(err) {
         console.error(err)
-        return res.status(403)
+        return res.status(403).json({expired: true})
       } else if(auth.student_id) {
         res.locals.auth = auth
         next();
