@@ -8,7 +8,10 @@
       "Students can now review missed words from previous tests in the study tab.",
       "Tests can now be archived, unarchived, or deleted."
     ],
-    "Bug Fixes": ["Fixed an issue where archiving an active test would glitch students."],
+    "Bug Fixes": [
+      "Fixed an issue where archiving an active test would glitch students.",
+      "Fixed an issue where archived tests would appear on the test dropdown."
+    ],
     "Planned Updates": [
       "Redesigned way to create tests with an integrated recording interface.",
       "Add the function to delete students and change their name.",
