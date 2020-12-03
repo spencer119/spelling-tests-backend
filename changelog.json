@@ -1,0 +1,19 @@
+[
+  {
+    "Date": "12/2/2020",
+    "Version": "2.1",
+    "New Features": [
+      "New teacher home page.",
+      "Feedback can now be submitted on the home page.",
+      "Students can now review missed words from previous tests in the study tab.",
+      "Tests can now be archived, unarchived, or deleted."
+    ],
+    "Bug Fixes": ["Fixed an issue where archiving an active test would glitch students."],
+    "Planned Updates": [
+      "Redesigned way to create tests with an integrated recording interface.",
+      "Add the function to delete students and change their name.",
+      "Add the function to change a test's name",
+      "Add the function to change a class's name"
+    ]
+  }
+]
