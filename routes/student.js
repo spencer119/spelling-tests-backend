@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 require('dotenv/config');
 const db = require('../db');
 router.get('/testId', async (req, res) => {
-  let token = req.headers.token;
   let auth = res.locals.auth
   let activeTest = await db.query(`SELECT active_test FROM groups WHERE group_id='${auth.group_id}'`)
   if (activeTest.rows[0].active_test === null) return res.status(200).json({test_id: null, first_name: auth.first_name})
@@ -14,42 +13,17 @@ router.get('/testId', async (req, res) => {
     console.log(allowedAttempts.rows[0].attempts);
     console.log(attempts.rows.length)
     return res.status(200).json({test_id: activeTest.rows[0].active_test, first_name: auth.first_name, allowedAttempts: allowedAttempts.rows[0].attempts, attempts: attempts.rows.length})
-    if (attempts.rows.length < allowedAttempts.rows[0].attempts) {
-      
-    }
   }
-  // jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
-  //   if (err) {
-  //     res.status(500);
-  //   } else {
-  //     db.query(
-  //       `SELECT active_test FROM groups WHERE group_id='${auth.group_id}'`,
-  //       (err, data) => {
-  //         if (err) {
-  //           return res.status(500);
-  //         } else {
-  //           if(data.rows[0].active_test === null) return res.status(200).json({test_id: null, first_name: auth.first_name})
-  //           console.log(data)
-  //           db.query(`SELECT * FROM results WHERE test_id = '${data.rows[0].active_test}' AND student_id = '${auth.student_id}'`, (err, sdata) => {
-  //               return res.status(200).json({
-  //                 test_id: data.rows[0].active_test,
-  //                 first_name: auth.first_name,
-  //                 attempts: sdata.rows.length
-  //               });
-              
-  //           })
-            
-  //         }
-  //       }
-  //     );
-  //   }
-  // });
 });
 router.get('/scores', async (req,res) => {
+  console.log('req')
   let auth = res.locals.auth;
-  let results = await db.query(`SELECT * FROM results WHERE student_id='${auth.student_id}'`)
-  let testNames = await db.query(`SELECT test_id, test_name FROM tests WHERE test_id IN (SELECT test_id FROM results WHERE student_id='${auth.student_id}');`)
-  return res.status(200).json({results: results.rows, testNames: testNames.rows})
+  let groupID = await db.query(`SELECT group_id FROM students WHERE student_id = '${auth.student_id}'`)
+  let activeTest = await db.query(`SELECT active_test FROM groups WHERE group_id = '${groupID.rows[0].group_id}'`)
+  if (activeTest.rows[0].active_test === null) return res.status(200).json({results: null, resultData: null})
+  let results = await db.query(`SELECT * FROM results WHERE student_id='${auth.student_id}' AND test_id = '${activeTest.rows[0].active_test}'`)
+  let resultData = await db.query(`SELECT * FROM resultdata WHERE result_id IN (SELECT result_id FROM results WHERE test_id = '${activeTest.rows[0].active_test}' AND student_id = '${auth.student_id}')`)
+  return res.status(200).json({results: results.rows, resultData: resultData.rows})
   
 })
 router.get('/test', (req, res) => {
