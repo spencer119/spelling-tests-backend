@@ -18,5 +18,11 @@
       "Add the function to change a test's name",
       "Add the function to change a class's name"
     ]
+  },
+  {
+    "Date": "12/??/2020",
+    "Version": "2.2",
+    "New Features": [],
+    "Bug Fixes": []
   }
 ]
