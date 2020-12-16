@@ -15,6 +15,7 @@ app.options('*', cors());
 
 const checkAuth = async (req, res, next) => {
   let token = req.headers.token;
+  console.log(req.headers);
   if (req.path.startsWith('/api/teacher')) {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
       if (err) {

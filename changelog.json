@@ -22,7 +22,7 @@
   {
     "Date": "12/??/2020",
     "Version": "2.2",
-    "New Features": [],
+    "New Features": ["Added the ability to delete a student."],
     "Bug Fixes": []
   }
 ]

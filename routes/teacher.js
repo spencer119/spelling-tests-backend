@@ -97,6 +97,16 @@ router.post('/student', (req, res) => {
     }
   });
 });
+router.delete('/student', (req, res) => {
+  db.query(`DELETE FROM students WHERE student_id = '${req.headers.student_id}'`, (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json(err);
+    } else {
+      return res.status(200).json(data);
+    }
+  });
+});
 router.post('/students/edit', (req, res) => {
   let token = req.headers.token;
   let student_id = req.body.student_id;
