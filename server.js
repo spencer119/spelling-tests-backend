@@ -1,22 +1,24 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
-require('dotenv/config');
-const fileUpload = require('express-fileupload');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
+require("dotenv/config");
+const fileUpload = require("express-fileupload");
 const app = express();
 
 app.use(cors());
-app.use(express.static('./data/'));
+app.use(express.static("./data/"));
 app.use(express.json());
 app.use(fileUpload());
 const maintenance = false;
-app.options('*', cors());
+app.options("*", cors());
 
 const checkAuth = async (req, res, next) => {
   let token = req.headers.token;
-  console.log(req.headers);
-  if (req.path.startsWith('/api/teacher')) {
+  if (
+    req.path.startsWith("/api/teacher") ||
+    req.path.startsWith("/api/v2/teacher")
+  ) {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
       if (err) {
         console.error(err);
@@ -26,7 +28,7 @@ const checkAuth = async (req, res, next) => {
         next();
       } else return res.status(403);
     });
-  } else if (req.path.startsWith('/api/admin')) {
+  } else if (req.path.startsWith("/api/admin")) {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
       if (err) {
         console.error(err);
@@ -36,7 +38,7 @@ const checkAuth = async (req, res, next) => {
         next();
       } else return res.status(403);
     });
-  } else if (req.path.startsWith('/api/student')) {
+  } else if (req.path.startsWith("/api/student")) {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
       console.log(auth);
       if (err) {
@@ -52,19 +54,19 @@ const checkAuth = async (req, res, next) => {
 
 // Routes
 app.use(checkAuth);
-app.use('/api/teacher', require('./routes/teacher'));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/results', require('./routes/results'));
-app.use('/api/student', require('./routes/student'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/v2/teacher', require('./routes/v2/teacher'));
+app.use("/api/teacher", require("./routes/teacher"));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/results", require("./routes/results"));
+app.use("/api/student", require("./routes/student"));
+app.use("/api/admin", require("./routes/admin"));
+app.use("/api/v2/teacher", require("./routes/v2/teacher"));
 
 // Connect to database
 mongoose.connect(
   process.env.DB_CONNECTION,
   { useNewUrlParser: true, useUnifiedTopology: true },
   () => {
-    console.log('Connected to Database');
+    console.log("Connected to Database");
   }
 );
 
