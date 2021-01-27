@@ -18,6 +18,7 @@ router.post('/tests/create', (req, res) => {
   let attempts = req.body.attempts;
   let words = req.body.words.split(',');
   console.log(req.body);
+  console.log(req);
   db.query(
     `INSERT INTO tests (teacher_id, test_name, attempts) VALUES ('${auth.teacher_id}', '${testName}', ${attempts}) RETURNING test_id`,
     (err, data) => {
