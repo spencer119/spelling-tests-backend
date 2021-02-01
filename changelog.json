@@ -22,7 +22,10 @@
   {
     "Date": "",
     "Version": "2.2",
-    "New Features": ["Added the ability to delete a student."],
-    "Bug Fixes": []
+    "New Features": [
+      "Added the ability to delete a student.",
+      "Added the ability to change a test name."
+    ],
+    "Bug Fixes": ["Fixed an issue that prevented audio from playing."]
   }
 ]

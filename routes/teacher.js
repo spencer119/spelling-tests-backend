@@ -654,4 +654,15 @@ router.delete('/result', async (req, res) => {
   );
 });
 
+router.post('/test/edit', (req, res) => {
+  db.query(
+    `UPDATE tests SET test_name = '${req.body.new_test_name}' WHERE test_id = '${req.body.test_id}'`,
+    (err, data) => {
+      if (err) {
+        res.status(500).json(err);
+      } else return res.status(200).json(data);
+    }
+  );
+});
+
 module.exports = router;
