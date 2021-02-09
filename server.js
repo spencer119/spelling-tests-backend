@@ -14,12 +14,8 @@ const maintenance = false;
 app.options('*', cors());
 
 const checkAuth = async (req, res, next) => {
-  console.log(req.headers);
   let token = req.headers.token;
-  if (
-    req.path.startsWith('/api/teacher') ||
-    req.path.startsWith('/api/v2/teacher')
-  ) {
+  if (req.path.startsWith('/api/teacher') || req.path.startsWith('/api/v2/teacher')) {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
       if (err) {
         console.error(err);
