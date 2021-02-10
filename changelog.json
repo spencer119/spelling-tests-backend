@@ -25,6 +25,7 @@
     "New Features": [
       "Brand new way to record test audio!",
       "Added the ability to delete a student.",
+      "You can now change a student's first name, last name, and username in the edit student dropdown.",
       "Added the ability to change a test name."
     ],
     "Bug Fixes": ["Fixed an issue that prevented audio from playing."]
