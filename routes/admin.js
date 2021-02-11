@@ -46,14 +46,32 @@ router.post('/teacher/resetpassword', (req, res) => {
     }
   );
 });
-router.get('/feedback', (req, res) => {
-  db.query(`SELECT * FROM feedback ORDER BY created_at DESC`, (err, data) => {
+router.get('/feedback', async (req, res) => {
+  let feedback = await db.query(`SELECT * FROM feedback ORDER BY created_at DESC`);
+  let teacherIds = await db.query(
+    `SELECT teacher_id,username FROM teachers WHERE teacher_id IN (SELECT teacher_id FROM feedback)`
+  );
+  res.status(200).json({ feedback: feedback.rows, teacherIds: teacherIds.rows });
+});
+router.put('/feedback', (req, res) => {
+  db.query(
+    `UPDATE feedback SET status = '${req.body.status}', response = '${req.body.response}' WHERE feedback_id = '${req.body.feedback_id}'`,
+    (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      } else return res.status(200).json(data);
+    }
+  );
+});
+router.delete('/feedback', (req, res) => {
+  console.log(req.body);
+  console.log(req.headers);
+  db.query(`DELETE FROM feedback WHERE feedback_id = '${req.headers.feedback_id}'`, (err, data) => {
     if (err) {
       console.error(err);
-      res.status(500).json(err);
-    } else {
-      res.status(200).json(data.rows);
-    }
+      return res.status(500).json(err);
+    } else return res.status(200).json(data);
   });
 });
 module.exports = router;

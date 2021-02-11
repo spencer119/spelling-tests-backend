@@ -556,4 +556,12 @@ router.get('/student', (req, res) => {
   console.log(student_id);
   res.status(200).json(student_id);
 });
+
+router.get('/feedback', async (req, res) => {
+  let auth = res.locals.auth;
+  let feedback = await db.query(
+    `SELECT * FROM feedback WHERE submitted_by = '${auth.teacher_id}' ORDER BY created_at DESC`
+  );
+  res.status(200).json(feedback.rows);
+});
 module.exports = router;
