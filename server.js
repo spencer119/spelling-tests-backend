@@ -55,7 +55,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/student', require('./routes/student'));
 app.use('/api/admin', require('./routes/admin'));
-<<<<<<< HEAD
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "https://brmesspelling.netlify.app"); 
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -63,9 +62,7 @@ app.use(function(req, res, next) {
 });
 
 
-=======
 app.use('/api/v2/teacher', require('./routes/v2/teacher'));
->>>>>>> dev
 
 // Connect to database
 mongoose.connect(
