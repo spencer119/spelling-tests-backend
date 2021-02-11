@@ -18,5 +18,23 @@
       "Add the function to change a test's name",
       "Add the function to change a class's name"
     ]
+  },
+  {
+    "Date": "2/10/2021",
+    "Version": "2.2",
+    "New Features": [
+      "Brand new way to record test audio!",
+      "Added the ability to delete a student.",
+      "You can now change a student's first name, last name, and username in the edit student dropdown.",
+      "Added the ability to change a test name."
+    ],
+    "Bug Fixes": ["Fixed an issue that prevented audio from playing."],
+    "Planned Updates": [
+      "Redesign class page to make use easier and add more functionality.",
+      "New feature to export student login information.",
+      "New feature to export student results.",
+      "New analytical tools for student results."
+    ],
+    "Dev Notes": ["Add new feedback screen for admins."]
   }
 ]

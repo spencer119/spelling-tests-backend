@@ -6,7 +6,10 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 const AWS = require('aws-sdk');
 let changelog = require('../changelog.json');
-AWS.config.update({ accessKeyId: process.env.AWS_KEY_ID, secretAccessKey: process.env.AWS_SECRET });
+AWS.config.update({
+  accessKeyId: process.env.AWS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET,
+});
 let s3 = new AWS.S3();
 let audioPath = path.join(__dirname, '../data/audio');
 router.get('/', async (req, res) => {
@@ -52,24 +55,12 @@ router.get('/result', (req, res) => {
     }
   });
 });
-router.get('/student', (req, res) => {
-  let token = req.headers.token;
-  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
-    if (err) {
-      return res.status(403);
-    }
-    if (auth.teacher_id) {
-      let studentData = await db.query(
-        `SELECT * FROM students WHERE student_id='${req.headers.student_id}'`
-      );
-      let student = studentData.rows;
-      res.status(200).json({
-        student,
-      });
-    } else {
-      return res.status(403).json({ msg: 'Unauthorized' });
-    }
-  });
+router.get('/student', async (req, res) => {
+  let studentData = await db.query(
+    `SELECT * FROM students WHERE student_id='${req.headers.student_id}'`
+  );
+  let student = studentData.rows;
+  res.status(200).json(student);
 });
 router.post('/student', (req, res) => {
   let token = req.headers.token;
@@ -97,30 +88,33 @@ router.post('/student', (req, res) => {
     }
   });
 });
-router.post('/students/edit', (req, res) => {
-  let token = req.headers.token;
+router.delete('/student', (req, res) => {
+  db.query(`DELETE FROM students WHERE student_id = '${req.headers.student_id}'`, (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json(err);
+    } else {
+      return res.status(200).json(data);
+    }
+  });
+});
+router.post('/student/edit', (req, res) => {
   let student_id = req.body.student_id;
   let class_id = req.body.class_id;
   let group_id = req.body.group_id;
-  jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
-    if (err) {
-      return res.status(403);
+  let first_name = req.body.first_name;
+  let last_name = req.body.last_name;
+  let username = req.body.username;
+  db.query(
+    `UPDATE students SET class_id = '${class_id}', group_id = '${group_id}', first_name = '${first_name}', last_name = '${last_name}', username = '${username}' WHERE student_id = '${student_id}'`,
+    (err, data) => {
+      if (err) {
+        return res.status(500);
+      } else {
+        return res.status(201).json(data);
+      }
     }
-    if (auth.teacher_id) {
-      db.query(
-        `UPDATE students SET class_id = '${class_id}', group_id = '${group_id}' WHERE student_id = '${student_id}'`,
-        (err, data) => {
-          if (err) {
-            return res.status(500);
-          } else {
-            return res.status(201).json(data);
-          }
-        }
-      );
-    } else {
-      return res.status(403).json({ msg: 'Unauthorized' });
-    }
-  });
+  );
 });
 router.get('/groups', (req, res) => {
   let token = req.headers.token;
@@ -317,7 +311,6 @@ router.post('/tests', (req, res) => {
             });
         } else return res.status(400).json({ msg: 'Invalid file type.' });
 
-        console.log(req.files.file);
         db.query(
           `INSERT INTO tests (teacher_id, test_name, attempts) VALUES ('${auth.teacher_id}', '${testName}', ${attempts}) RETURNING test_id`,
           (err, data) => {
@@ -547,4 +540,20 @@ router.delete('/result', async (req, res) => {
   });
 });
 
+router.post('/test/edit', (req, res) => {
+  db.query(
+    `UPDATE tests SET test_name = '${req.body.new_test_name}' WHERE test_id = '${req.body.test_id}'`,
+    (err, data) => {
+      if (err) {
+        res.status(500).json(err);
+      } else return res.status(200).json(data);
+    }
+  );
+});
+
+router.get('/student', (req, res) => {
+  let student_id = req.headers.student_id;
+  console.log(student_id);
+  res.status(200).json(student_id);
+});
 module.exports = router;
