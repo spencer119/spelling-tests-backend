@@ -82,5 +82,13 @@
       "Add the ability to view the status of a suggestion or reported bug."
     ],
     "Dev Notes": ["Add new feedback screen for admins."]
+  },
+  {
+    "Date": "",
+    "Version": "2.3",
+    "New Features": ["Added the ability to print individual student results."],
+    "Bug Fixes": [],
+    "Planned Updates": [],
+    "Dev Notes": []
   }
 ]
