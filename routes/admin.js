@@ -10,7 +10,7 @@ router.post('/teacher/create', (req, res) => {
     }','${req.body.lastName}','${req.body.username}','${
       req.body.useDefaultPassword
         ? '$2a$10$21tQ9rVJpGkax0vIN8gUs.Q0TtxGasogeeH5eRlKgnaq2nEwhX2PS'
-        : req.body.password
+        : bcrypt.hashSync(req.body.password)
     }','${req.body.email}', ${req.body.isAdmin ? 'true' : 'false'})`,
     (err, data) => {
       if (err) {
@@ -47,11 +47,15 @@ router.post('/teacher/resetpassword', (req, res) => {
   );
 });
 router.get('/feedback', async (req, res) => {
-  let feedback = await db.query(`SELECT * FROM feedback ORDER BY created_at DESC`);
+  let feedback = await db.query(
+    `SELECT * FROM feedback ORDER BY created_at DESC`
+  );
   let teacherIds = await db.query(
     `SELECT teacher_id,username FROM teachers WHERE teacher_id IN (SELECT teacher_id FROM feedback)`
   );
-  res.status(200).json({ feedback: feedback.rows, teacherIds: teacherIds.rows });
+  res
+    .status(200)
+    .json({ feedback: feedback.rows, teacherIds: teacherIds.rows });
 });
 router.put('/feedback', (req, res) => {
   db.query(
@@ -67,11 +71,14 @@ router.put('/feedback', (req, res) => {
 router.delete('/feedback', (req, res) => {
   console.log(req.body);
   console.log(req.headers);
-  db.query(`DELETE FROM feedback WHERE feedback_id = '${req.headers.feedback_id}'`, (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json(err);
-    } else return res.status(200).json(data);
-  });
+  db.query(
+    `DELETE FROM feedback WHERE feedback_id = '${req.headers.feedback_id}'`,
+    (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      } else return res.status(200).json(data);
+    }
+  );
 });
 module.exports = router;

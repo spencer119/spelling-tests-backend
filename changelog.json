@@ -89,6 +89,8 @@
     "New Features": ["Added the ability to print individual student results."],
     "Bug Fixes": [],
     "Planned Updates": [],
-    "Dev Notes": []
+    "Dev Notes": [
+      "Fixed custom password on teacher account creation not encrypting correctly."
+    ]
   }
 ]

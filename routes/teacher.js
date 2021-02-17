@@ -14,11 +14,21 @@ let s3 = new AWS.S3();
 let audioPath = path.join(__dirname, '../data/audio');
 router.get('/', async (req, res) => {
   let auth = res.locals.auth;
-  let students = await db.query(`SELECT * FROM students WHERE teacher_id='${auth.teacher_id}'`);
-  let groups = await db.query(`SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`);
-  let classes = await db.query(`SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`);
-  let tests = await db.query(`SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`);
-  let results = await db.query(`SELECT * FROM results WHERE teacher_id='${auth.teacher_id}'`);
+  let students = await db.query(
+    `SELECT * FROM students WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let groups = await db.query(
+    `SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let classes = await db.query(
+    `SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let tests = await db.query(
+    `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let results = await db.query(
+    `SELECT * FROM results WHERE teacher_id='${auth.teacher_id}' ORDER BY created_at DESC`
+  );
 
   res.status(200).json({
     students: students.rows,
@@ -36,8 +46,12 @@ router.get('/result', (req, res) => {
       return res.status(403);
     }
     if (auth.teacher_id) {
-      let result = await db.query(`SELECT * FROM results WHERE result_id = '${result_id}'`);
-      let resultdata = await db.query(`SELECT * FROM resultdata WHERE result_id = '${result_id}'`);
+      let result = await db.query(
+        `SELECT * FROM results WHERE result_id = '${result_id}'`
+      );
+      let resultdata = await db.query(
+        `SELECT * FROM resultdata WHERE result_id = '${result_id}'`
+      );
       let test_name = await db.query(
         `SELECT test_name FROM tests WHERE test_id = '${result.rows[0].test_id}'`
       );
@@ -72,9 +86,11 @@ router.post('/student', (req, res) => {
       db.query(
         `INSERT INTO students (first_name, last_name, username, teacher_id, class_id, group_id) VALUES ('${
           req.body.firstName
-        }', '${req.body.lastName}', '${req.body.username}', '${auth.teacher_id}' ${
-          req.body.classId === '' ? '' : `,'${req.body.classId}'`
-        } ${req.body.groupId === '' ? '' : `, '${req.body.groupId}'`})`,
+        }', '${req.body.lastName}', '${req.body.username}', '${
+          auth.teacher_id
+        }' ${req.body.classId === '' ? '' : `,'${req.body.classId}'`} ${
+          req.body.groupId === '' ? '' : `, '${req.body.groupId}'`
+        })`,
         (err, data) => {
           if (err) {
             return res.status(500).json(err);
@@ -89,14 +105,17 @@ router.post('/student', (req, res) => {
   });
 });
 router.delete('/student', (req, res) => {
-  db.query(`DELETE FROM students WHERE student_id = '${req.headers.student_id}'`, (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json(err);
-    } else {
-      return res.status(200).json(data);
+  db.query(
+    `DELETE FROM students WHERE student_id = '${req.headers.student_id}'`,
+    (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      } else {
+        return res.status(200).json(data);
+      }
     }
-  });
+  );
 });
 router.post('/student/edit', (req, res) => {
   let student_id = req.body.student_id;
@@ -123,13 +142,16 @@ router.get('/groups', (req, res) => {
       res.status(403).json({ err });
     } else {
       if (auth.teacher_id) {
-        db.query(`SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`, (err, data) => {
-          if (err) {
-            res.status(500);
-          } else {
-            res.status(200).json(data.rows);
+        db.query(
+          `SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`,
+          (err, data) => {
+            if (err) {
+              res.status(500);
+            } else {
+              res.status(200).json(data.rows);
+            }
           }
-        });
+        );
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
@@ -240,25 +262,34 @@ router.get('/tests', (req, res) => {
       res.status(403).json({ err });
     } else {
       if (auth.teacher_id) {
-        db.query(`SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`, (err, data) => {
-          if (err) {
-            res.status(500).json(err);
-          } else {
-            if (data.rows.length < 1) return res.status(200).json({ tests: [], testlines: [] });
-            let testIDs = '';
-            data.rows.forEach((test) => {
-              testIDs = testIDs.concat(`'${test.test_id}',`);
-            });
-            testIDs = testIDs.slice(0, -1);
-            db.query(`SELECT * FROM testlines WHERE test_id IN (${testIDs})`, (err, sdata) => {
-              if (err) {
-                res.status(500).json(err);
-              } else {
-                res.status(200).json({ tests: data.rows, testlines: sdata.rows });
-              }
-            });
+        db.query(
+          `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`,
+          (err, data) => {
+            if (err) {
+              res.status(500).json(err);
+            } else {
+              if (data.rows.length < 1)
+                return res.status(200).json({ tests: [], testlines: [] });
+              let testIDs = '';
+              data.rows.forEach((test) => {
+                testIDs = testIDs.concat(`'${test.test_id}',`);
+              });
+              testIDs = testIDs.slice(0, -1);
+              db.query(
+                `SELECT * FROM testlines WHERE test_id IN (${testIDs})`,
+                (err, sdata) => {
+                  if (err) {
+                    res.status(500).json(err);
+                  } else {
+                    res
+                      .status(200)
+                      .json({ tests: data.rows, testlines: sdata.rows });
+                  }
+                }
+              );
+            }
           }
-        });
+        );
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
@@ -283,15 +314,19 @@ router.post('/tests', (req, res) => {
           let invalidFile = false;
           req.files.file.map((f) => {
             if (f.mimetype !== 'audio/x-m4a') invalidFile = true;
-            checkArr = checkArr.filter((word) => word !== f.name.replace('.m4a', ''));
+            checkArr = checkArr.filter(
+              (word) => word !== f.name.replace('.m4a', '')
+            );
           });
           if (invalidFile)
             return res.status(400).json({
-              msg: 'Please make sure all the files match the file type (.m4a) you selected.',
+              msg:
+                'Please make sure all the files match the file type (.m4a) you selected.',
             });
           if (checkArr.length !== 0)
             return res.status(400).json({
-              msg: 'Please make sure every word has an audio file spelled the EXACT same way.',
+              msg:
+                'Please make sure every word has an audio file spelled the EXACT same way.',
             });
         } else if (filetype === 'mp3') {
           let checkArr = words;
@@ -299,15 +334,19 @@ router.post('/tests', (req, res) => {
           console.log(req.files.file);
           req.files.file.map((f) => {
             if (f.mimetype !== 'audio/mpeg') invalidFile = true;
-            checkArr = checkArr.filter((word) => word !== f.name.replace('.mp3', ''));
+            checkArr = checkArr.filter(
+              (word) => word !== f.name.replace('.mp3', '')
+            );
           });
           if (invalidFile)
             return res.status(400).json({
-              msg: 'Please make sure all the files match the file type (.mp3) you selected.',
+              msg:
+                'Please make sure all the files match the file type (.mp3) you selected.',
             });
           if (checkArr.length !== 0)
             return res.status(400).json({
-              msg: 'Please make sure every word has an audio file spelled the EXACT same way.',
+              msg:
+                'Please make sure every word has an audio file spelled the EXACT same way.',
             });
         } else return res.status(400).json({ msg: 'Invalid file type.' });
 
@@ -341,51 +380,27 @@ router.post('/tests', (req, res) => {
               db.query(queryString, (err, sdata) => {
                 if (err) {
                   res.status(500);
-                  db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
+                  db.query(
+                    `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                  );
                 } else {
                   if (req.files.file[0] === undefined) {
                     // if only one audio file is uploaded
                     let file = req.files.file;
-                    file.mv(path.join(audioPath, `/${file.name.replace("'", '%27')}`), () => {
-                      fs.readFile(
-                        path.join(audioPath, `/${file.name.replace("'", '%27')}`),
-                        (err, fsdata) => {
-                          if (err) {
-                            console.error(err);
-                            db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
-                            return res.status(500);
-                          }
-                          const params = {
-                            Bucket: 'spelling-tests',
-                            Key: `${auth.teacher_id}/${file.name
-                              .replace("'", '%27')
-                              .toLowerCase()}`,
-                            Body: fs.createReadStream(
-                              path.join(audioPath, `/${file.name.replace("'", '%27')}`)
-                            ),
-                            ACL: 'public-read',
-                          };
-                          s3.upload(params, (s3err, s3data) => {
-                            if (s3err) {
-                              console.error(s3err);
-                              db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
-                              return res.status(500);
-                            } else {
-                              res.status(201).json();
-                            }
-                          });
-                        }
-                      );
-                    });
-                  } else {
-                    req.files.file.map((file) => {
-                      file.mv(path.join(audioPath, `/${file.name.replace("'", '%27')}`), () => {
+                    file.mv(
+                      path.join(audioPath, `/${file.name.replace("'", '%27')}`),
+                      () => {
                         fs.readFile(
-                          path.join(audioPath, `/${file.name.replace("'", '%27')}`),
+                          path.join(
+                            audioPath,
+                            `/${file.name.replace("'", '%27')}`
+                          ),
                           (err, fsdata) => {
                             if (err) {
                               console.error(err);
-                              db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
+                              db.query(
+                                `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                              );
                               return res.status(500);
                             }
                             const params = {
@@ -394,7 +409,10 @@ router.post('/tests', (req, res) => {
                                 .replace("'", '%27')
                                 .toLowerCase()}`,
                               Body: fs.createReadStream(
-                                path.join(audioPath, `/${file.name.replace("'", '%27')}`)
+                                path.join(
+                                  audioPath,
+                                  `/${file.name.replace("'", '%27')}`
+                                )
                               ),
                               ACL: 'public-read',
                             };
@@ -411,7 +429,57 @@ router.post('/tests', (req, res) => {
                             });
                           }
                         );
-                      });
+                      }
+                    );
+                  } else {
+                    req.files.file.map((file) => {
+                      file.mv(
+                        path.join(
+                          audioPath,
+                          `/${file.name.replace("'", '%27')}`
+                        ),
+                        () => {
+                          fs.readFile(
+                            path.join(
+                              audioPath,
+                              `/${file.name.replace("'", '%27')}`
+                            ),
+                            (err, fsdata) => {
+                              if (err) {
+                                console.error(err);
+                                db.query(
+                                  `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                                );
+                                return res.status(500);
+                              }
+                              const params = {
+                                Bucket: 'spelling-tests',
+                                Key: `${auth.teacher_id}/${file.name
+                                  .replace("'", '%27')
+                                  .toLowerCase()}`,
+                                Body: fs.createReadStream(
+                                  path.join(
+                                    audioPath,
+                                    `/${file.name.replace("'", '%27')}`
+                                  )
+                                ),
+                                ACL: 'public-read',
+                              };
+                              s3.upload(params, (s3err, s3data) => {
+                                if (s3err) {
+                                  console.error(s3err);
+                                  db.query(
+                                    `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                                  );
+                                  return res.status(500);
+                                } else {
+                                  res.status(201).json();
+                                }
+                              });
+                            }
+                          );
+                        }
+                      );
                     });
                   }
                 }
@@ -427,42 +495,61 @@ router.post('/tests', (req, res) => {
 });
 router.delete('/tests', async (req, res) => {
   if (req.body.archive) {
-    await db.query(`UPDATE groups SET active_test = null WHERE active_test = '${req.body.test}'`);
-    db.query(`UPDATE tests SET archived = true WHERE test_id='${req.body.test}'`, (err, data) => {
-      if (err) {
-        console.error(err);
-        res.status(500).json(err);
-      } else {
-        res.status(200).json(data);
+    await db.query(
+      `UPDATE groups SET active_test = null WHERE active_test = '${req.body.test}'`
+    );
+    db.query(
+      `UPDATE tests SET archived = true WHERE test_id='${req.body.test}'`,
+      (err, data) => {
+        if (err) {
+          console.error(err);
+          res.status(500).json(err);
+        } else {
+          res.status(200).json(data);
+        }
       }
-    });
+    );
   } else if (!req.body.archive) {
-    db.query(`DELETE FROM tests WHERE test_id='${req.body.test}'`, (err, data) => {
-      if (err) {
-        console.error(err);
-        res.status(500).json(err);
-      } else {
-        res.status(200).json(data);
+    db.query(
+      `DELETE FROM tests WHERE test_id='${req.body.test}'`,
+      (err, data) => {
+        if (err) {
+          console.error(err);
+          res.status(500).json(err);
+        } else {
+          res.status(200).json(data);
+        }
       }
-    });
+    );
   }
 });
 router.post('/test/unarchive', async (req, res) => {
-  db.query(`UPDATE tests SET archived = false WHERE test_id='${req.body.test}'`, (err, data) => {
-    if (err) {
-      console.log(err);
-      return res.status(500);
-    } else {
-      res.status(200).json(data);
+  db.query(
+    `UPDATE tests SET archived = false WHERE test_id='${req.body.test}'`,
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        return res.status(500);
+      } else {
+        res.status(200).json(data);
+      }
     }
-  });
+  );
 });
 router.get('/home', async (req, res) => {
   let auth = res.locals.auth;
-  let students = await db.query(`SELECT * FROM students WHERE teacher_id='${auth.teacher_id}'`);
-  let groups = await db.query(`SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`);
-  let classes = await db.query(`SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`);
-  let tests = await db.query(`SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`);
+  let students = await db.query(
+    `SELECT * FROM students WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let groups = await db.query(
+    `SELECT * FROM groups WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let classes = await db.query(
+    `SELECT * FROM classes WHERE teacher_id='${auth.teacher_id}'`
+  );
+  let tests = await db.query(
+    `SELECT * FROM tests WHERE teacher_id='${auth.teacher_id}'`
+  );
   let results = await db.query(
     `SELECT * FROM results WHERE teacher_id='${auth.teacher_id}' ORDER BY created_at DESC LIMIT 5;`
   );
@@ -501,7 +588,9 @@ router.post('/upload', (req, res) => {
           return res.status(400).send('No files were uploaded.');
         }
         if (req.files.file[0] === undefined) {
-          req.files.file.mv(path.join(audioPath, `/${req.files.file.name.replace("'", '')}`));
+          req.files.file.mv(
+            path.join(audioPath, `/${req.files.file.name.replace("'", '')}`)
+          );
         } else {
           req.files.file.map((file) => {
             file.mv(path.join(audioPath, `/${file.name.replace("'", '')}`));
@@ -522,9 +611,12 @@ router.get('/results', (req, res) => {
     } else {
       console.log(auth);
       if (auth.teacher_id) {
-        db.query(`SELECT * FROM results WHERE teacher_id = '${auth.teacher_id}'`, (err, data) => {
-          res.status(200).json(data.rows);
-        });
+        db.query(
+          `SELECT * FROM results WHERE teacher_id = '${auth.teacher_id}'`,
+          (err, data) => {
+            res.status(200).json(data.rows);
+          }
+        );
       } else {
         res.status(401).json({ msg: 'Unauthorized' });
       }
@@ -533,11 +625,14 @@ router.get('/results', (req, res) => {
 });
 
 router.delete('/result', async (req, res) => {
-  db.query(`DELETE from results WHERE result_id = '${req.headers.result_id}'`, (err, data) => {
-    if (err) {
-      res.status(500).json(err);
-    } else return res.status(200).json(data);
-  });
+  db.query(
+    `DELETE from results WHERE result_id = '${req.headers.result_id}'`,
+    (err, data) => {
+      if (err) {
+        res.status(500).json(err);
+      } else return res.status(200).json(data);
+    }
+  );
 });
 
 router.post('/test/edit', (req, res) => {
