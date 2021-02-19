@@ -6,39 +6,36 @@ const db = require('../db');
 router.post('/teacher', (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
-  db.query(
-    `SELECT * FROM teachers WHERE username='${username}'`,
-    (err, data) => {
-      if (data.rows.length === 0 || err) {
-        return res.status(401).json({ msg: 'Invalid credentials.' });
-      } else if (bcrypt.compareSync(password, data.rows[0].password)) {
-        jwt.sign(data.rows[0],  process.env.JWT_SECRET,{expiresIn: '2h'}, (err, token) => {
-          if (err) {
-            console.log(err)
-            return res.status(500).json({ msg: 'Authentication error' });
-          } else if (password === 'eagles2020') {
-            res.json({ firstLogin: true, token });
-          } else {
-            res.json({ token });
-          }
-        });
-      } else {
-        return res.status(401).json({ msg: 'Invalid credentials.' });
-      }
+  db.query(`SELECT * FROM teachers WHERE username='${username}'`, (err, data) => {
+    console.log(data);
+    if (data.rows.length === 0 || err) {
+      return res.status(401).json({ msg: 'Invalid credentials.' });
+    } else if (bcrypt.compareSync(password, data.rows[0].password)) {
+      jwt.sign(data.rows[0], process.env.JWT_SECRET, { expiresIn: '2h' }, (err, token) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ msg: 'Authentication error' });
+        } else if (password === 'eagles2020') {
+          res.json({ firstLogin: true, token });
+        } else {
+          res.json({ token });
+        }
+      });
+    } else {
+      return res.status(401).json({ msg: 'Invalid credentials.' });
     }
-  );
+  });
 });
-router.get('/admin', (req,res) => {
+router.get('/admin', (req, res) => {
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
     if (err) {
       return res.status(403);
     } else {
-      return res.status(200).json(auth.is_admin)
+      return res.status(200).json(auth.is_admin);
     }
-    
   });
-})
+});
 router.post('/teacher/change/password', (req, res) => {
   let token = req.headers.token;
   jwt.verify(token, process.env.JWT_SECRET, async (err, auth) => {
@@ -47,7 +44,11 @@ router.post('/teacher/change/password', (req, res) => {
     }
     if (auth.teacher_id) {
       if (req.body.password === 'eagles2020') {
-        return res.status(400).json({msg: 'You must change your password to something different from the default password.'})
+        return res
+          .status(400)
+          .json({
+            msg: 'You must change your password to something different from the default password.',
+          });
       }
       let newHash = bcrypt.hashSync(req.body.password);
       db.query(
@@ -55,7 +56,7 @@ router.post('/teacher/change/password', (req, res) => {
         (err, data) => {
           if (err) {
             console.log(err);
-            res.status(500).json({msg: 'An error has occured please try again.'});
+            res.status(500).json({ msg: 'An error has occured please try again.' });
           } else {
             res.status(200).json(data);
           }
@@ -73,7 +74,7 @@ router.post('/student', (req, res) => {
       if (data.rows.length === 0 || err) {
         return res.status(401).json({ msg: 'Invalid username' });
       } else {
-        jwt.sign(data.rows[0], process.env.JWT_SECRET,{expiresIn: '2h'}, (err, token) => {
+        jwt.sign(data.rows[0], process.env.JWT_SECRET, { expiresIn: '2h' }, (err, token) => {
           if (err) {
             return res.status(500).json({ msg: 'Authentication error' });
           } else {
@@ -85,14 +86,11 @@ router.post('/student', (req, res) => {
   );
 });
 const isTeacher = async (teacher_id) => {
-  db.query(
-    `SELECT * FROM teachers WHERE teacher_id='${teacher_id}'`,
-    (err, res) => {
-      if (err) return false;
-      else if (res.rows.length === 1) return true;
-      else return false;
-    }
-  );
+  db.query(`SELECT * FROM teachers WHERE teacher_id='${teacher_id}'`, (err, res) => {
+    if (err) return false;
+    else if (res.rows.length === 1) return true;
+    else return false;
+  });
 };
 module.exports = isTeacher;
 
