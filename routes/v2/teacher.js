@@ -127,41 +127,43 @@ router.get('/export', async (req, res) => {
   );
   console.log(studentData.rows);
   let replacedValues = exportData.rows.map((row) => {
+    // Change date to a more readable format
+    let newDate = new Date(row.created_at);
+    row['Date'] = newDate.toLocaleDateString();
+    delete row.created_at;
+
     // Replace student_id with the first and last name
     let student = studentData.rows.find((student) => student.student_id === row.student_id);
-    row.first_name = student.first_name;
-    row.last_name = student.last_name;
+    row['First Name'] = student.first_name;
+    row['Last Name'] = student.last_name;
     delete row.student_id;
 
     // Replace test_id with test name
     let _test = testData.rows.find((tst) => tst.test_id === row.test_id);
-    row.test_name = _test.test_name;
+    row['Test Name'] = _test.test_name;
     delete row.test_id;
 
     // Replace group_id with group name
     let grp = groupData.rows.find((grp) => grp.group_id === row.group_id);
-    row.group_name = grp.group_name;
+    row['Group Name'] = grp.group_name;
     delete row.group_id;
 
-    // Change date to a more readable format
-    let newDate = new Date(row.created_at);
-    row.date = newDate.toLocaleDateString();
-    delete row.created_at;
+    row['Score'] = row.score;
+    delete row.score;
+
+    row['Correct'] = row.correct;
+    delete row.correct;
+
+    row['Total'] = row.total;
+    delete row.total;
+
+    row['Attempt'] = row.attempt;
+    delete row.attempt;
+
     return row;
   });
   const ws = fs.createWriteStream('./data/export.csv');
   const jsonData = JSON.parse(JSON.stringify(exportData.rows));
-  console.log(jsonData);
-  const header = [
-    'Date',
-    'Test Name',
-    'First Name',
-    'Last Name',
-    'Score',
-    'Correct',
-    'Total',
-    'Attempt',
-  ];
   fastcsv
     // write the JSON data as a CSV file
     .write(jsonData, { headers: true })
