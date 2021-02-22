@@ -31,9 +31,9 @@ router.post('/tests/create', (req, res) => {
             `('${data.rows[0].test_id}', ${i + 1}, '${words[i].replace(
               "'",
               "''"
-            )}', 'https://spelling-tests.s3-us-west-2.amazonaws.com/${auth.teacher_id}/${words[
-              i
-            ].replace("'", "''")}.wav'),`
+            )}', 'https://spelling-tests.s3-us-west-2.amazonaws.com/${
+              auth.teacher_id
+            }/${words[i].replace("'", "''")}.wav'),`
           );
         }
         queryString = queryString.slice(0, -1);
@@ -41,66 +41,89 @@ router.post('/tests/create', (req, res) => {
           if (err) {
             res.status(500);
             console.error(err);
-            db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
+            db.query(
+              `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+            );
           } else {
             if (req.files.file[0] === undefined) {
               // if only one audio file is uploaded
               let file = req.files.file;
-              file.mv(path.join(audioPath, `/${file.name.replace("'", '%27')}`), () => {
-                fs.readFile(
-                  path.join(audioPath, `/${file.name.replace("'", '%27')}`),
-                  (err, fsdata) => {
-                    if (err) {
-                      console.error(err);
-                      db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
-                      return res.status(500);
-                    }
-                    const params = {
-                      Bucket: 'spelling-tests',
-                      Key: `${auth.teacher_id}/${file.name.replace("'", '%27').toLowerCase()}`,
-                      Body: fs.createReadStream(
-                        path.join(audioPath, `/${file.name.replace("'", '%27')}`)
-                      ),
-                      ACL: 'public-read',
-                    };
-                    s3.upload(params, (s3err, s3data) => {
-                      if (s3err) {
-                        console.error(s3err);
-                        db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
+              file.mv(
+                path.join(audioPath, `/${file.name.replace("'", '%27')}`),
+                () => {
+                  fs.readFile(
+                    path.join(audioPath, `/${file.name.replace("'", '%27')}`),
+                    (err, fsdata) => {
+                      if (err) {
+                        console.error(err);
+                        db.query(
+                          `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                        );
                         return res.status(500);
-                      } else {
-                        res.status(201).json();
                       }
-                    });
-                  }
-                );
-              });
+                      const params = {
+                        Bucket: 'spelling-tests',
+                        Key: `${auth.teacher_id}/${file.name
+                          .replace("'", '%27')
+                          .toLowerCase()}`,
+                        Body: fs.createReadStream(
+                          path.join(
+                            audioPath,
+                            `/${file.name.replace("'", '%27')}`
+                          )
+                        ),
+                        ACL: 'public-read',
+                      };
+                      s3.upload(params, (s3err, s3data) => {
+                        if (s3err) {
+                          console.error(s3err);
+                          db.query(
+                            `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                          );
+                          return res.status(500);
+                        } else {
+                          res.status(201).json();
+                        }
+                      });
+                    }
+                  );
+                }
+              );
             } else {
               // multiple files
               req.files.file.map((file) => {
                 file.mv(path.join(audioPath, `/${file.name}`), () => {
-                  fs.readFile(path.join(audioPath, `/${file.name}`), (err, fsdata) => {
-                    if (err) {
-                      console.error(err);
-                      db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
-                      return res.status(500);
-                    }
-                    const params = {
-                      Bucket: 'spelling-tests',
-                      Key: `${auth.teacher_id}/${file.name.toLowerCase()}`,
-                      Body: fs.createReadStream(path.join(audioPath, `/${file.name}`)),
-                      ACL: 'public-read',
-                    };
-                    s3.upload(params, (s3err, s3data) => {
-                      if (s3err) {
-                        console.error(s3err);
-                        db.query(`DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`);
+                  fs.readFile(
+                    path.join(audioPath, `/${file.name}`),
+                    (err, fsdata) => {
+                      if (err) {
+                        console.error(err);
+                        db.query(
+                          `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                        );
                         return res.status(500);
-                      } else {
-                        res.status(201).json();
                       }
-                    });
-                  });
+                      const params = {
+                        Bucket: 'spelling-tests',
+                        Key: `${auth.teacher_id}/${file.name.toLowerCase()}`,
+                        Body: fs.createReadStream(
+                          path.join(audioPath, `/${file.name}`)
+                        ),
+                        ACL: 'public-read',
+                      };
+                      s3.upload(params, (s3err, s3data) => {
+                        if (s3err) {
+                          console.error(s3err);
+                          db.query(
+                            `DELETE FROM tests WHERE test_id='${data.rows[0].test_id}'`
+                          );
+                          return res.status(500);
+                        } else {
+                          res.status(201).json();
+                        }
+                      });
+                    }
+                  );
                 });
               });
             }
@@ -125,7 +148,6 @@ router.get('/export', async (req, res) => {
   let testData = await db.query(
     `SELECT test_id, test_name FROM tests WHERE teacher_id = '${auth.teacher_id}'`
   );
-  console.log(studentData.rows);
   let replacedValues = exportData.rows.map((row) => {
     // Change date to a more readable format
     let newDate = new Date(row.created_at);
@@ -133,7 +155,9 @@ router.get('/export', async (req, res) => {
     delete row.created_at;
 
     // Replace student_id with the first and last name
-    let student = studentData.rows.find((student) => student.student_id === row.student_id);
+    let student = studentData.rows.find(
+      (student) => student.student_id === row.student_id
+    );
     row['First Name'] = student.first_name;
     row['Last Name'] = student.last_name;
     delete row.student_id;
