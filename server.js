@@ -14,7 +14,10 @@ app.options('*', cors());
 
 const checkAuth = async (req, res, next) => {
   let token = req.headers.token;
-  if (req.path.startsWith('/api/teacher') || req.path.startsWith('/api/v2/teacher')) {
+  if (
+    req.path.startsWith('/api/teacher') ||
+    req.path.startsWith('/api/v2/teacher')
+  ) {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
       if (err) {
         console.error(err);
@@ -36,7 +39,6 @@ const checkAuth = async (req, res, next) => {
     });
   } else if (req.path.startsWith('/api/student')) {
     jwt.verify(token, process.env.JWT_SECRET, (err, auth) => {
-      console.log(auth);
       if (err) {
         console.error(err);
         return res.status(403).json({ expired: true });
@@ -56,8 +58,14 @@ app.use('/api/results', require('./routes/results'));
 app.use('/api/student', require('./routes/student'));
 app.use('/api/admin', require('./routes/admin'));
 app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'https://brmesspelling.netlify.app');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header(
+    'Access-Control-Allow-Origin',
+    'https://brmesspelling.netlify.app'
+  );
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  );
   next();
 });
 
