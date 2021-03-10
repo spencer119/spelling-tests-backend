@@ -214,7 +214,8 @@ router.get('/report', async (req, res) => {
   let testData = await db.query(
     `SELECT test_id, test_name FROM tests WHERE teacher_id = '${auth.teacher_id}'`
   );
-  console.log(req.headers.params);
+  let params = req.headers.params;
+  console.log(params);
   res.status(200).json({});
 });
 
