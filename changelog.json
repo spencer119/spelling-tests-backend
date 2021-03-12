@@ -86,7 +86,10 @@
   {
     "Date": "",
     "Version": "2.3",
-    "New Features": ["Added the ability to print individual student results."],
+    "New Features": [
+      "Added the ability to print individual student results.",
+      "Added a new export and report feature."
+    ],
     "Bug Fixes": [],
     "Planned Updates": [],
     "Dev Notes": [

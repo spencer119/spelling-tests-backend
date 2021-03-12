@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 const db = require('../../db');
 const fastcsv = require('fast-csv');
 const AWS = require('aws-sdk');
