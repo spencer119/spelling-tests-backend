@@ -17,8 +17,6 @@ router.get('/testId', async (req, res) => {
     let attempts = await db.query(
       `SELECT * FROM results WHERE test_id = '${activeTest.rows[0].active_test}' AND student_id = '${auth.student_id}'`
     );
-    console.log(allowedAttempts.rows[0].attempts);
-    console.log(attempts.rows.length);
     return res.status(200).json({
       test_id: activeTest.rows[0].active_test,
       first_name: auth.first_name,
@@ -28,7 +26,6 @@ router.get('/testId', async (req, res) => {
   }
 });
 router.get('/scores', async (req, res) => {
-  console.log('req');
   let auth = res.locals.auth;
   let groupID = await db.query(
     `SELECT group_id FROM students WHERE student_id = '${auth.student_id}'`
@@ -44,7 +41,9 @@ router.get('/scores', async (req, res) => {
   let resultData = await db.query(
     `SELECT * FROM resultdata WHERE result_id IN (SELECT result_id FROM results WHERE test_id = '${activeTest.rows[0].active_test}' AND student_id = '${auth.student_id}')`
   );
-  return res.status(200).json({ results: results.rows, resultData: resultData.rows });
+  return res
+    .status(200)
+    .json({ results: results.rows, resultData: resultData.rows });
 });
 router.get('/test', (req, res) => {
   db.query(
@@ -82,7 +81,9 @@ router.post('/test/submit', (req, res) => {
         auth.student_id
       }', '${req.body.test_id}', '${auth.teacher_id}', '${
         auth.group_id
-      }', ${correct}, ${total}, ${score}, ${attempts.rowCount + 1}) RETURNING result_id`,
+      }', ${correct}, ${total}, ${score}, ${
+        attempts.rowCount + 1
+      }) RETURNING result_id`,
       (err, data) => {
         if (err) {
           console.error(err);
@@ -92,10 +93,12 @@ router.post('/test/submit', (req, res) => {
           let line_number = 1;
           testData.forEach((x) => {
             queryString = queryString.concat(
-              `('${data.rows[0].result_id}', '${x.word.replace("'", "''")}', '${x.ans.replace(
+              `('${data.rows[0].result_id}', '${x.word.replace(
                 "'",
                 "''"
-              )}', ${x.word === x.ans ? true : false}, ${line_number}),`
+              )}', '${x.ans.replace("'", "''")}', ${
+                x.word === x.ans ? true : false
+              }, ${line_number}),`
             );
             line_number++;
           });
@@ -103,7 +106,9 @@ router.post('/test/submit', (req, res) => {
           db.query(queryString, (err, sdata) => {
             if (err) {
               console.error(err);
-              db.query(`DELETE FROM results WHERE result_id = '${data.rows[0].result_id}'`);
+              db.query(
+                `DELETE FROM results WHERE result_id = '${data.rows[0].result_id}'`
+              );
               return res.status(500);
             } else {
               res.status(200).json();

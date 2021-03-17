@@ -12,6 +12,11 @@ AWS.config.update({
 let s3 = new AWS.S3();
 let audioPath = path.join(__dirname, '../../data/audio');
 
+const encodeUpload = (words) => {};
+let encoded = words.map((word) => {
+  let encodedWord = encodeURIComponent(word);
+});
+
 router.post('/tests/create', (req, res) => {
   let auth = res.locals.auth;
   let testName = req.body.testName;
@@ -48,10 +53,16 @@ router.post('/tests/create', (req, res) => {
               // if only one audio file is uploaded
               let file = req.files.file;
               file.mv(
-                path.join(audioPath, `/${file.name.replace("'", '%27')}`),
+                path.join(
+                  audioPath,
+                  `/${file.name.replace("'", '%27').replace('.', '%2E')}`
+                ),
                 () => {
                   fs.readFile(
-                    path.join(audioPath, `/${file.name.replace("'", '%27')}`),
+                    path.join(
+                      audioPath,
+                      `/${file.name.replace("'", '%27').replace('.', '%2E')}`
+                    ),
                     (err, fsdata) => {
                       if (err) {
                         console.error(err);
@@ -64,11 +75,14 @@ router.post('/tests/create', (req, res) => {
                         Bucket: 'spelling-tests',
                         Key: `${auth.teacher_id}/${file.name
                           .replace("'", '%27')
+                          .replace('.', '%2E')
                           .toLowerCase()}`,
                         Body: fs.createReadStream(
                           path.join(
                             audioPath,
-                            `/${file.name.replace("'", '%27')}`
+                            `/${file.name
+                              .replace("'", '%27')
+                              .replace('.', '%2E')}`
                           )
                         ),
                         ACL: 'public-read',
