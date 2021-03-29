@@ -12,11 +12,6 @@ AWS.config.update({
 let s3 = new AWS.S3();
 let audioPath = path.join(__dirname, '../../data/audio');
 
-const encodeUpload = (words) => {};
-let encoded = words.map((word) => {
-  let encodedWord = encodeURIComponent(word);
-});
-
 router.post('/tests/create', (req, res) => {
   let auth = res.locals.auth;
   let testName = req.body.testName;
@@ -215,9 +210,23 @@ router.get('/export', async (req, res) => {
 });
 router.get('/report', async (req, res) => {
   let auth = res.locals.auth;
-  let exportData = await db.query(
-    `SELECT student_id, test_id, group_id, score, total, correct, created_at, attempt FROM results WHERE teacher_id = '${auth.teacher_id}' LIMIT 1844674407370955161`
-  );
+  let params = JSON.parse(req.headers.params);
+  let exportType = req.headers.exporttype;
+  let exportData;
+  switch (exportType) {
+    case 'test':
+      if (params.testId === undefined)
+        return res.status(400).json({
+          msg:
+            'An error occured finding the test you requested. Please try again. If this continues reload the page.',
+        });
+      exportData = await db.query(
+        `SELECT student_id, test_id, group_id, score, total, correct, created_at, attempt FROM results WHERE teacher_id = '${auth.teacher_id}' AND test_id = '${params.testId}' LIMIT 1844674407370955161`
+      );
+      break;
+    default:
+      break;
+  }
   let studentData = await db.query(
     `SELECT student_id, first_name, last_name FROM students WHERE teacher_id = '${auth.teacher_id}'`
   );
@@ -227,9 +236,59 @@ router.get('/report', async (req, res) => {
   let testData = await db.query(
     `SELECT test_id, test_name FROM tests WHERE teacher_id = '${auth.teacher_id}'`
   );
-  let params = req.headers.params;
-  console.log(params);
-  res.status(200).json({});
+
+  let replacedValues = exportData.rows.map((row) => {
+    // Change date to a more readable format
+    let newDate = new Date(row.created_at);
+    row['Date'] = newDate.toLocaleDateString();
+    delete row.created_at;
+
+    // Replace student_id with the first and last name
+    let student = studentData.rows.find(
+      (student) => student.student_id === row.student_id
+    );
+    row['First Name'] = student.first_name;
+    row['Last Name'] = student.last_name;
+    delete row.student_id;
+
+    // Replace test_id with test name
+    let _test = testData.rows.find((tst) => tst.test_id === row.test_id);
+    row['Test Name'] = _test.test_name;
+    delete row.test_id;
+
+    // Replace group_id with group name
+    let grp = groupData.rows.find((grp) => grp.group_id === row.group_id);
+    row['Group Name'] = grp.group_name;
+    delete row.group_id;
+
+    row['Score'] = row.score;
+    delete row.score;
+
+    row['Correct'] = row.correct;
+    delete row.correct;
+
+    row['Total'] = row.total;
+    delete row.total;
+
+    row['Attempt'] = row.attempt;
+    delete row.attempt;
+
+    return row;
+  });
+  const ws = fs.createWriteStream('./data/export.csv');
+  const jsonData = JSON.parse(JSON.stringify(exportData.rows));
+  console.log(jsonData);
+  fastcsv
+    // write the JSON data as a CSV file
+    .write(jsonData, { headers: true })
+    .pipe(ws)
+
+    .on('finish', () => {
+      return res
+        .status(200)
+        .attachment('exports.csv')
+        .sendFile(path.join(__dirname, '../../data/export.csv'));
+    });
 });
 
 module.exports = router;
