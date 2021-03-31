@@ -88,10 +88,15 @@
     "Version": "2.3",
     "New Features": [
       "Added the ability to print individual student results.",
-      "Added a new export and report feature."
+      "Added a new export and report feature.",
+      "You can export all results or results from individual tests. More options will come in the future."
     ],
-    "Bug Fixes": [],
-    "Planned Updates": [],
+    "Bug Fixes": ["Various bug fixes."],
+    "Planned Updates": [
+      "More export options.",
+      "Redesign class page to make use easier and add more functionality.",
+      "New feature to export student login information."
+    ],
     "Dev Notes": [
       "Fixed custom password on teacher account creation not encrypting correctly."
     ]
