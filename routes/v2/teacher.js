@@ -226,7 +226,7 @@ router.get('/report', async (req, res) => {
       break;
     case 'date':
       exportData = await db.query(
-        `SELECT student_id, test_id, group_id, score, total, correct, created_at, attempt FROM results WHERE teacher_id = '${auth.teacher_id}' AND created_at BETWEEN ${params.startDate} AND ${params.endDate} LIMIT 1844674407370955161`
+        `SELECT student_id, test_id, group_id, score, total, correct, created_at, attempt FROM results WHERE teacher_id = '${auth.teacher_id}' AND created_at BETWEEN TO_TIMESTAMP(${params.startDate}) AND TO_TIMESTAMP(${params.endDate}) LIMIT 1844674407370955161`
       );
       break;
     default:
