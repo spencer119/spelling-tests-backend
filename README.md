@@ -1,0 +1,1 @@
+Node.js backend API using Electron.js. Handles requests from a React.js app and interacts with an SQL database. It protects routes and database access, handles logins by hashing login info with bcrypt.
